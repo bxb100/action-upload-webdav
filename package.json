@@ -1,0 +1,43 @@
+{
+  "name": "action-upload-webdav",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Github Action for uploading files to a webdav server",
+  "main": "lib/main.js",
+  "scripts": {
+    "lint": "eslint src/**/*.ts",
+    "build": "tsc",
+    "package": "ncc build --source-map --license LICENSE lib/main.js",
+    "dist": "npm run build && npm run package",
+    "format": "prettier --write src/*.ts src/**/*.ts src/**/**/*.ts",
+    "test": "jest",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bxb100/action-upload-webdav"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup"
+  ],
+  "author": "bxb100",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "1.6.0",
+    "@actions/github": "5.0.0",
+    "@actions/glob": "0.2.0",
+    "webdav": "^4.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.24",
+    "@typescript-eslint/parser": "5.5.0",
+    "@vercel/ncc": "0.33.0",
+    "eslint": "8.7.0",
+    "eslint-plugin-github": "4.3.5",
+    "husky": "7.0.4",
+    "prettier": "2.5.1",
+    "typescript": "4.5.2"
+  }
+}

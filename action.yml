@@ -1,0 +1,29 @@
+name: 'Upload WebDAV'
+description: 'Github Action for uploading files to a webdav server'
+author: '@bxb100 aka John Bi'
+inputs:
+  webdav_address:
+    description: The webdav address
+    required: true
+  webdav_username:
+    description: WebDAV username
+    required: true
+  webdav_password:
+    description: WebDAV password
+    required: true
+  webdav_upload_path:
+    description: WebDAV upload path
+    required: true
+  files:
+    description: Newline-delimited list of path globs for asset files to upload
+    required: true
+  fail_on_unmatched_files:
+    description: Fail the action when exist unmatch file
+    default: "false"
+    required: false
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
