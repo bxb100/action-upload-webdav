@@ -43,7 +43,7 @@ export const unmatchedPatterns = async (
                 .create(pattern)
                 .then(async globber => globber.glob())
                 .then(files => {
-                    if (files.some(path => !statSync(path).isFile())) {
+                    if (!files.some(path => statSync(path).isFile())) {
                         result.push(pattern)
                     }
                 })
@@ -60,7 +60,9 @@ export const filePaths = async (patterns: string[]): Promise<string[]> => {
                 .create(pattern)
                 .then(async globber => globber.glob())
                 .then(files => {
-                    result.concat(files.filter(path => statSync(path).isFile()))
+                    result.push(
+                        ...files.filter(path => statSync(path).isFile())
+                    )
                 })
         })
     )

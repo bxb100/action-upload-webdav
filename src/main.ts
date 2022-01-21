@@ -1,6 +1,6 @@
 import * as path from 'path'
 import {filePaths, parseConfig, unmatchedPatterns} from './util'
-import {info, notice, setFailed} from '@actions/core'
+import {notice, setFailed} from '@actions/core'
 import {createClient} from 'webdav'
 
 async function run(): Promise<void> {
@@ -8,7 +8,7 @@ async function run(): Promise<void> {
 
     const patterns = await unmatchedPatterns(config.files)
     for (const pattern of patterns) {
-        info(`🤔 Pattern '${pattern}' does not match any files.`)
+        notice(`🤔 Pattern '${pattern}' does not match any files.`)
     }
     if (patterns.length > 0 && config.failOnUnmatchedFiles) {
         throw new Error(`⛔ There were unmatched files`)
@@ -16,7 +16,7 @@ async function run(): Promise<void> {
 
     const files = await filePaths(config.files)
     if (files.length === 0) {
-        info(`🤔 ${config.files} not include valid file.`)
+        notice(`🤔 ${config.files} not include valid file.`)
     }
 
     const client = createClient(config.webdavAddress, {
@@ -34,7 +34,7 @@ async function run(): Promise<void> {
         try {
             await client.putFileContents(uploadPath, file)
         } catch (error) {
-            notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
+            setFailed(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
         }
     }
 }

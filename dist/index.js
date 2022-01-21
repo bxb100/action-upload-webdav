@@ -44,14 +44,14 @@ function run() {
         const config = (0, util_1.parseConfig)();
         const patterns = yield (0, util_1.unmatchedPatterns)(config.files);
         for (const pattern of patterns) {
-            (0, core_1.info)(`🤔 Pattern '${pattern}' does not match any files.`);
+            (0, core_1.notice)(`🤔 Pattern '${pattern}' does not match any files.`);
         }
         if (patterns.length > 0 && config.failOnUnmatchedFiles) {
             throw new Error(`⛔ There were unmatched files`);
         }
         const files = yield (0, util_1.filePaths)(config.files);
         if (files.length === 0) {
-            (0, core_1.info)(`🤔 ${config.files} not include valid file.`);
+            (0, core_1.notice)(`🤔 ${config.files} not include valid file.`);
         }
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
             username: config.webdavUsername,
@@ -65,7 +65,7 @@ function run() {
                 yield client.putFileContents(uploadPath, file);
             }
             catch (error) {
-                (0, core_1.notice)(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
+                (0, core_1.setFailed)(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
             }
         }
     });
@@ -141,7 +141,7 @@ const unmatchedPatterns = (patterns) => __awaiter(void 0, void 0, void 0, functi
             .create(pattern)
             .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.glob(); }))
             .then(files => {
-            if (files.some(path => !(0, fs_1.statSync)(path).isFile())) {
+            if (!files.some(path => (0, fs_1.statSync)(path).isFile())) {
                 result.push(pattern);
             }
         });
@@ -156,7 +156,7 @@ const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
             .create(pattern)
             .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.glob(); }))
             .then(files => {
-            result.concat(files.filter(path => (0, fs_1.statSync)(path).isFile()));
+            result.push(...files.filter(path => (0, fs_1.statSync)(path).isFile()));
         });
     })));
     return result;
