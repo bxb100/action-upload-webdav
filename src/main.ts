@@ -31,6 +31,7 @@ async function run(): Promise<void> {
             config.webdavUploadPath,
             path.basename(file)
         )
+        info(`📦 Uploading ${file} to ${uploadPath}`)
         try {
             await client.putFileContents(uploadPath, file)
         } catch (error) {
