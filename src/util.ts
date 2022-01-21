@@ -4,7 +4,7 @@ import {statSync} from 'fs'
 
 export interface Config {
     webdavAddress: string
-    webdavUser: string
+    webdavUsername: string
     webdavPassword: string
     webdavUploadPath: string
     files: string[]
@@ -15,7 +15,7 @@ export const parseConfig = (): Config => {
     try {
         return {
             webdavAddress: core.getInput('webdav_address', {required: true}),
-            webdavUser: core.getInput('webdav_user', {required: true}),
+            webdavUsername: core.getInput('webdav_username', {required: true}),
             webdavPassword: core.getInput('webdav_password', {required: true}),
             webdavUploadPath: core.getInput('webdav_upload_path', {
                 required: true

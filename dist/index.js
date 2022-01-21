@@ -54,7 +54,7 @@ function run() {
             (0, core_1.info)(`🤔 ${config.files} not include valid file.`);
         }
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
-            username: config.webdavUser,
+            username: config.webdavUsername,
             password: config.webdavPassword
         });
         // first be sure there are have directory
@@ -117,7 +117,7 @@ const parseConfig = () => {
     try {
         return {
             webdavAddress: core.getInput('webdav_address', { required: true }),
-            webdavUser: core.getInput('webdav_user', { required: true }),
+            webdavUsername: core.getInput('webdav_username', { required: true }),
             webdavPassword: core.getInput('webdav_password', { required: true }),
             webdavUploadPath: core.getInput('webdav_upload_path', {
                 required: true

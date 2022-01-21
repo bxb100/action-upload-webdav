@@ -20,7 +20,7 @@ async function run(): Promise<void> {
     }
 
     const client = createClient(config.webdavAddress, {
-        username: config.webdavUser,
+        username: config.webdavUsername,
         password: config.webdavPassword
     })
 
