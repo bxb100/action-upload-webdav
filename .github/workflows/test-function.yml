@@ -1,0 +1,17 @@
+name: test function
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: upload
+        uses: bxb100/action-upload-webdav@main
+        with:
+          webdav_address: ${{secrets.address}}
+          webdav_username: ${{secrets.username}}
+          webdav_password: ${{secrets.password}}
+          webdav_upload_path: "/"
+          files: "./test/**"
