@@ -39,6 +39,7 @@ const path = __importStar(__nccwpck_require__(1017));
 const util_1 = __nccwpck_require__(4024);
 const core_1 = __nccwpck_require__(2186);
 const webdav_1 = __nccwpck_require__(4032);
+const fs_1 = __nccwpck_require__(7147);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const config = (0, util_1.parseConfig)();
@@ -63,7 +64,7 @@ function run() {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
             try {
-                yield client.putFileContents(uploadPath, file);
+                yield client.putFileContents(uploadPath, (0, fs_1.readFileSync)(file));
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);

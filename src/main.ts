@@ -2,6 +2,7 @@ import * as path from 'path'
 import {filePaths, parseConfig, unmatchedPatterns} from './util'
 import {info, notice, setFailed} from '@actions/core'
 import {createClient} from 'webdav'
+import {readFileSync} from 'fs'
 
 async function run(): Promise<void> {
     const config = parseConfig()
@@ -33,7 +34,7 @@ async function run(): Promise<void> {
         )
         info(`📦 Uploading ${file} to ${uploadPath}`)
         try {
-            await client.putFileContents(uploadPath, file)
+            await client.putFileContents(uploadPath, readFileSync(file))
         } catch (error) {
             info(`error: ${error}`)
             setFailed(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
