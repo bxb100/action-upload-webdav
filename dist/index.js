@@ -57,6 +57,8 @@ function run() {
             username: config.webdavUser,
             password: config.webdavPassword
         });
+        // first be sure there are have directory
+        yield client.createDirectory(config.webdavUploadPath, { recursive: true });
         for (const file of files) {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             try {

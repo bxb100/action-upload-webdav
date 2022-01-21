@@ -24,6 +24,8 @@ async function run(): Promise<void> {
         password: config.webdavPassword
     })
 
+    // first be sure there are have directory
+    await client.createDirectory(config.webdavUploadPath, {recursive: true})
     for (const file of files) {
         const uploadPath = path.join(
             config.webdavUploadPath,
