@@ -65,6 +65,7 @@ function run() {
                 yield client.putFileContents(uploadPath, file);
             }
             catch (error) {
+                (0, core_1.info)(`error: ${error}`);
                 (0, core_1.setFailed)(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
             }
         }
