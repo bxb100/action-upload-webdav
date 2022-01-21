@@ -13,5 +13,5 @@ jobs:
           webdav_address: ${{secrets.address}}
           webdav_username: ${{secrets.username}}
           webdav_password: ${{secrets.password}}
-          webdav_upload_path: "/"
+          webdav_upload_path: "/data"
           files: "./test/**"
