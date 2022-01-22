@@ -33,6 +33,14 @@ export const parseConfig = (): Config => {
     }
 }
 
+function checkStat(path: string): boolean {
+    // exclude .DS_Store
+    if (path.endsWith('.DS_Store')) {
+        return false
+    }
+    return statSync(path).isFile()
+}
+
 export const unmatchedPatterns = async (
     patterns: string[]
 ): Promise<string[]> => {
@@ -43,7 +51,7 @@ export const unmatchedPatterns = async (
                 .create(pattern)
                 .then(async globber => globber.glob())
                 .then(files => {
-                    if (!files.some(path => statSync(path).isFile())) {
+                    if (!files.some(checkStat)) {
                         result.push(pattern)
                     }
                 })
@@ -60,9 +68,7 @@ export const filePaths = async (patterns: string[]): Promise<string[]> => {
                 .create(pattern)
                 .then(async globber => globber.glob())
                 .then(files => {
-                    result.push(
-                        ...files.filter(path => statSync(path).isFile())
-                    )
+                    result.push(...files.filter(checkStat))
                 })
         })
     )

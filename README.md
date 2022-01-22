@@ -7,3 +7,6 @@
 <p align="center">
 A Github Action for uploading files to a webdav server
 </p>
+
+## Usage
+

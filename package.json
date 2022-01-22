@@ -1,6 +1,6 @@
 {
   "name": "action-upload-webdav",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Github Action for uploading files to a webdav server",
   "main": "lib/main.js",
