@@ -137,6 +137,13 @@ const parseConfig = () => {
     }
 };
 exports.parseConfig = parseConfig;
+function checkStat(path) {
+    // exclude .DS_Store
+    if (path.endsWith('.DS_Store')) {
+        return false;
+    }
+    return (0, fs_1.statSync)(path).isFile();
+}
 const unmatchedPatterns = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
     const result = [];
     yield Promise.all(patterns.map((pattern) => __awaiter(void 0, void 0, void 0, function* () {
@@ -144,7 +151,7 @@ const unmatchedPatterns = (patterns) => __awaiter(void 0, void 0, void 0, functi
             .create(pattern)
             .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.glob(); }))
             .then(files => {
-            if (!files.some(path => (0, fs_1.statSync)(path).isFile())) {
+            if (!files.some(checkStat)) {
                 result.push(pattern);
             }
         });
@@ -159,7 +166,7 @@ const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
             .create(pattern)
             .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.glob(); }))
             .then(files => {
-            result.push(...files.filter(path => (0, fs_1.statSync)(path).isFile()));
+            result.push(...files.filter(checkStat));
         });
     })));
     return result;

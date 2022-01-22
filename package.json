@@ -1,6 +1,6 @@
 {
   "name": "action-upload-webdav",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Github Action for uploading files to a webdav server",
   "main": "lib/main.js",
@@ -32,16 +32,16 @@
   },
   "devDependencies": {
     "@types/jest": "27.4.0",
-    "@types/node": "12.20.42",
-    "@typescript-eslint/parser": "5.5.0",
+    "@types/node": "16.11.21",
+    "@typescript-eslint/parser": "5.10.0",
     "@vercel/ncc": "0.33.1",
     "eslint": "8.7.0",
     "eslint-plugin-github": "4.3.5",
     "husky": "7.0.4",
-    "jest": "24.9.0",
-    "jest-circus": "24.9.0",
+    "jest": "27.4.7",
+    "jest-circus": "27.4.6",
     "prettier": "2.5.1",
-    "ts-jest": "24.3.0",
-    "typescript": "4.5.2"
+    "ts-jest": "27.1.3",
+    "typescript": "4.5.5"
   }
 }
