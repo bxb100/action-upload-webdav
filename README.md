@@ -9,6 +9,7 @@ A Github Action for uploading files to a webdav server
 </p>
 
 ## :cartwheeling: Usage
+
 ```yaml
   uses: bxb100/action-upload-webdav@v1
   with:
@@ -18,8 +19,9 @@ A Github Action for uploading files to a webdav server
     webdav_upload_path: "/data"
     files: "./test/**"
  ```
-> :warning: for security purpose, please using the environment variables, check in https://docs.github.com/en/actions/security-guides/encrypted-secrets
- 
+
+> :warning: for security purpose, please using the Actions secrets, check in <https://docs.github.com/en/actions/security-guides/encrypted-secrets>
+
 ## :writing_hand: All Parameters
 
 |Input|Description|Default|
@@ -31,10 +33,13 @@ A Github Action for uploading files to a webdav server
 |[`files`](#files)| Newline-delimited list of path globs for asset files to upload <br> :feet: You can learn more about multi-line yaml syntax [here](https://yaml-multiline.info/) | - |
 |`fail_on_unmatched_files`|Fail the action when exist unmatch file pattern| false |
 > :no_bicycles: Now we just support the basic authentication
+>
+> :warning: If the upload path contains same file name, the file will be overwritten
 
 ## :potted_plant: Detail
 
 ### files
+
 Using the [@action/glob](https://github.com/actions/toolkit/tree/main/packages/glob) to search for files matching glob patterns. You can set muliple pattern to active the search.
 
 <details>
@@ -47,6 +52,7 @@ Using the [@action/glob](https://github.com/actions/toolkit/tree/main/packages/g
 Patterns `*`, `?`, `[...]`, `**` (globstar) are supported.
 
 With the following behaviors:
+
 - File names that begin with `.` may be included in the results
 - Case insensitive on Windows
 - Directory separator `/` and `\` both supported on Windows
@@ -56,6 +62,7 @@ With the following behaviors:
 Supports basic tilde expansion, for current user HOME replacement only.
 
 Example:
+
 - `~` may expand to /Users/johndoe
 - `~/foo` may expand to /Users/johndoe/foo
 
@@ -79,6 +86,7 @@ On Linux/macOS `\` is also treated as an escape character.
 </details>
 
 ## :book: Thanks
+
 - [action-gh-release](https://github.com/softprops/action-gh-release)
 - [toolkit](https://github.com/actions/toolkit)
 - [webdav-client](https://github.com/perry-mitchell/webdav-client)
