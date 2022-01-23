@@ -23,6 +23,7 @@ inputs:
     required: false
 runs:
   using: 'node12'
+  pre: 'dist/pre/index.js'
   main: 'dist/index.js'
 branding:
   icon: 'upload-cloud'
