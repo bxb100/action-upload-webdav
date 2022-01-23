@@ -64,8 +64,8 @@ function run() {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
             try {
-                // 1MB chunk size
-                (0, fs_1.createReadStream)(file, { highWaterMark: 1048576 }).pipe(client.createWriteStream(uploadPath));
+                // 16-100KB may be best, so using the default chunk size
+                (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
             }
             catch (error) {

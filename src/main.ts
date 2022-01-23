@@ -34,10 +34,8 @@ async function run(): Promise<void> {
         )
         info(`📦 Uploading ${file} to ${uploadPath}`)
         try {
-            // 1MB chunk size
-            createReadStream(file, {highWaterMark: 1048576}).pipe(
-                client.createWriteStream(uploadPath)
-            )
+            // 16-100KB may be best, so using the default chunk size
+            createReadStream(file).pipe(client.createWriteStream(uploadPath))
             notice(`🎉 Uploaded ${uploadPath}`)
         } catch (error) {
             info(`error: ${error}`)
