@@ -38,6 +38,7 @@ async function run(): Promise<void> {
             createReadStream(file, {highWaterMark: 1048576}).pipe(
                 client.createWriteStream(uploadPath)
             )
+            notice(`🎉 Uploaded ${uploadPath}`)
         } catch (error) {
             info(`error: ${error}`)
             notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)

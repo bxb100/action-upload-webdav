@@ -66,6 +66,7 @@ function run() {
             try {
                 // 1MB chunk size
                 (0, fs_1.createReadStream)(file, { highWaterMark: 1048576 }).pipe(client.createWriteStream(uploadPath));
+                (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
