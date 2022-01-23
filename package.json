@@ -7,8 +7,9 @@
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "build": "tsc",
+    "package-pre": "ncc build lib/ping.js -o dist/pre",
     "package": "ncc build --source-map --license LICENSE lib/main.js",
-    "dist": "npm run build && npm run package",
+    "dist": "npm run build && npm run package-pre && npm run package",
     "format": "prettier --write src/*.ts src/**/*.ts src/**/**/*.ts",
     "test": "jest",
     "prepare": "husky install"

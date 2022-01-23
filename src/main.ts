@@ -40,7 +40,7 @@ async function run(): Promise<void> {
             )
         } catch (error) {
             info(`error: ${error}`)
-            setFailed(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
+            notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
         }
     }
 }
