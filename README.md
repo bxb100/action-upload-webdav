@@ -18,7 +18,7 @@ A Github Action for uploading files to a webdav server
     webdav_upload_path: "/data"
     files: "./test/**"
  ```
-> :warning: for security purpose, please using the environment, check in https://docs.github.com/en/actions/security-guides/encrypted-secrets
+> :warning: for security purpose, please using the environment variables, check in https://docs.github.com/en/actions/security-guides/encrypted-secrets
  
 ## :writing_hand: All Parameters
 
