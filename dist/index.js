@@ -64,7 +64,7 @@ function run() {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
             try {
-                yield client.putFileContents(uploadPath, (0, fs_1.readFileSync)(file));
+                (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
