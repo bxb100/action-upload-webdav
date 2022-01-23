@@ -17,15 +17,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ping = void 0;
+const core_1 = __nccwpck_require__(2186);
 const webdav_1 = __nccwpck_require__(4032);
 const util_1 = __nccwpck_require__(4024);
-const core_1 = __nccwpck_require__(2186);
 const ping = () => __awaiter(void 0, void 0, void 0, function* () {
     const config = (0, util_1.parseConfig)();
     (0, webdav_1.createClient)(config.webdavAddress, {
         username: config.webdavUsername,
         password: config.webdavPassword
     });
+    (0, core_1.info)('👻 Connect success');
 });
 exports.ping = ping;
 (0, exports.ping)().catch(err => (0, core_1.setFailed)(`🙀 failed to connect the server: ${err}`));
