@@ -41,14 +41,30 @@ function checkStat(path: string): boolean {
     return statSync(path).isFile()
 }
 
+const patterSplit = (
+    patterns: string[]
+): {include: string[]; exclude: string[]} => {
+    const include: string[] = []
+    const exclude: string[] = []
+    for (const pattern of patterns) {
+        if (pattern.startsWith('!')) {
+            exclude.push(pattern)
+        } else {
+            include.push(pattern)
+        }
+    }
+    return {include, exclude}
+}
+
 export const unmatchedPatterns = async (
     patterns: string[]
 ): Promise<string[]> => {
+    const {include, exclude} = patterSplit(patterns)
     const result: string[] = []
     await Promise.all(
-        patterns.map(async pattern => {
+        include.map(async pattern => {
             await glob
-                .create(pattern)
+                .create([pattern, ...exclude].join('\n'))
                 .then(async globber => globber.glob())
                 .then(files => {
                     if (!files.some(checkStat)) {
@@ -61,11 +77,12 @@ export const unmatchedPatterns = async (
 }
 
 export const filePaths = async (patterns: string[]): Promise<string[]> => {
+    const {include, exclude} = patterSplit(patterns)
     const result: string[] = []
     await Promise.all(
-        patterns.map(async pattern => {
+        include.map(async pattern => {
             await glob
-                .create(pattern)
+                .create([pattern, ...exclude].join('\n'))
                 .then(async globber => globber.glob())
                 .then(files => {
                     result.push(...files.filter(checkStat))
