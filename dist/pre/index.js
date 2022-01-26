@@ -101,24 +101,21 @@ function checkStat(path) {
     return (0, fs_1.statSync)(path).isFile();
 }
 const patterSplit = (patterns) => {
-    const include = [];
-    const exclude = [];
+    const includes = [];
+    const excludes = [];
     for (const pattern of patterns) {
-        if (pattern.startsWith('!')) {
-            exclude.push(pattern);
-        }
-        else {
-            include.push(pattern);
-        }
+        pattern.startsWith('!')
+            ? excludes.push(pattern)
+            : includes.push(pattern);
     }
-    return { include, exclude };
+    return { includes, excludes };
 };
 const unmatchedPatterns = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
-    const { include, exclude } = patterSplit(patterns);
+    const { includes, excludes } = patterSplit(patterns);
     const result = [];
-    yield Promise.all(include.map((pattern) => __awaiter(void 0, void 0, void 0, function* () {
+    yield Promise.all(includes.map((pattern) => __awaiter(void 0, void 0, void 0, function* () {
         yield glob
-            .create([pattern, ...exclude].join('\n'))
+            .create([pattern, ...excludes].join('\n'))
             .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.glob(); }))
             .then(files => {
             if (!files.some(checkStat)) {
@@ -130,11 +127,11 @@ const unmatchedPatterns = (patterns) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.unmatchedPatterns = unmatchedPatterns;
 const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
-    const { include, exclude } = patterSplit(patterns);
+    const { includes, excludes } = patterSplit(patterns);
     const result = [];
-    yield Promise.all(include.map((pattern) => __awaiter(void 0, void 0, void 0, function* () {
+    yield Promise.all(includes.map((pattern) => __awaiter(void 0, void 0, void 0, function* () {
         yield glob
-            .create([pattern, ...exclude].join('\n'))
+            .create([pattern, ...excludes].join('\n'))
             .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.glob(); }))
             .then(files => {
             result.push(...files.filter(checkStat));

@@ -43,28 +43,26 @@ function checkStat(path: string): boolean {
 
 const patterSplit = (
     patterns: string[]
-): {include: string[]; exclude: string[]} => {
-    const include: string[] = []
-    const exclude: string[] = []
+): {includes: string[]; excludes: string[]} => {
+    const includes: string[] = []
+    const excludes: string[] = []
     for (const pattern of patterns) {
-        if (pattern.startsWith('!')) {
-            exclude.push(pattern)
-        } else {
-            include.push(pattern)
-        }
+        pattern.startsWith('!')
+            ? excludes.push(pattern)
+            : includes.push(pattern)
     }
-    return {include, exclude}
+    return {includes, excludes}
 }
 
 export const unmatchedPatterns = async (
     patterns: string[]
 ): Promise<string[]> => {
-    const {include, exclude} = patterSplit(patterns)
+    const {includes, excludes} = patterSplit(patterns)
     const result: string[] = []
     await Promise.all(
-        include.map(async pattern => {
+        includes.map(async pattern => {
             await glob
-                .create([pattern, ...exclude].join('\n'))
+                .create([pattern, ...excludes].join('\n'))
                 .then(async globber => globber.glob())
                 .then(files => {
                     if (!files.some(checkStat)) {
@@ -77,12 +75,12 @@ export const unmatchedPatterns = async (
 }
 
 export const filePaths = async (patterns: string[]): Promise<string[]> => {
-    const {include, exclude} = patterSplit(patterns)
+    const {includes, excludes} = patterSplit(patterns)
     const result: string[] = []
     await Promise.all(
-        include.map(async pattern => {
+        includes.map(async pattern => {
             await glob
-                .create([pattern, ...exclude].join('\n'))
+                .create([pattern, ...excludes].join('\n'))
                 .then(async globber => globber.glob())
                 .then(files => {
                     result.push(...files.filter(checkStat))
