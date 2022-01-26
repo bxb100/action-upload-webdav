@@ -19,6 +19,21 @@ describe('util', () => {
                 [path.join(rootPath, 'test/aa-bb/text.txt')]
             )
         })
+
+        it('special filetype', async () => {
+            assert.deepStrictEqual(
+                await filePaths(['test/**-**/*.txt']),
+                [path.join(rootPath, 'test/aa-bb/text.txt')]
+            )
+            assert.deepStrictEqual(
+                await filePaths(['test/**/*.txt']),
+                [path.join(rootPath, 'test/aa-bb/text.txt')]
+            )
+            assert.deepStrictEqual(
+                await filePaths(['test/**/*.jpg']),
+                [path.join(rootPath, 'test/data/foo/test-imge.jpg')]
+            )
+        })
     })
 
     describe('unmatchedPatterns', () => {
