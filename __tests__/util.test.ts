@@ -52,5 +52,16 @@ describe('util', () => {
                 ['test/data/does/not/exist/*']
             )
         })
+
+        it("exclude file", async () => {
+            assert.deepStrictEqual(
+                await unmatchedPatterns([
+                    'test/data/**',
+                    'test/data/does/not/exist/*',
+                    '!**/*.txt'
+                ]),
+                ['test/data/does/not/exist/*']
+            )
+        })
     })
 })
