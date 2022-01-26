@@ -26,15 +26,16 @@ async function run(): Promise<void> {
     })
 
     // first be sure there are have directory
-    await client.createDirectory(config.webdavUploadPath, {recursive: true})
+    if ((await client.exists(config.webdavUploadPath)) === false) {
+        await client.createDirectory(config.webdavUploadPath, {recursive: true})
+    }
     for (const file of files) {
         const uploadPath = path.join(
             config.webdavUploadPath,
             path.basename(file)
         )
-        info(`📦 Uploading ${file} to ${uploadPath}`)
         try {
-            // 16-100KB may be best, so using the default chunk size
+            info(`📦 Uploading ${file} to ${uploadPath}`)
             createReadStream(file).pipe(client.createWriteStream(uploadPath))
             notice(`🎉 Uploaded ${uploadPath}`)
         } catch (error) {
