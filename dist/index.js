@@ -59,12 +59,13 @@ function run() {
             password: config.webdavPassword
         });
         // first be sure there are have directory
-        yield client.createDirectory(config.webdavUploadPath, { recursive: true });
+        if ((yield client.exists(config.webdavUploadPath)) === false) {
+            yield client.createDirectory(config.webdavUploadPath, { recursive: true });
+        }
         for (const file of files) {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
-            (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
             try {
-                // 16-100KB may be best, so using the default chunk size
+                (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
             }
