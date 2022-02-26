@@ -23,19 +23,20 @@ describe('WebDAV link test', () => {
         )
     })
 
-    it('ping success',() => {
+    it('ping success', async () => {
         configSpy.mockImplementation(() => {
             return {
-                webdavAddress: 'http://jojo-nas-one:5999',
-                webdavUsername: 'webdav-user',
-                webdavPassword: 'mushily&flop&fit7',
+                webdavAddress: 'http://192.168.31.143:5999',
+                webdavUsername: 'webdav-user-test',
+                webdavPassword: 'test12345',
                 webdavUploadPath: '',
                 files: [''],
                 failOnUnmatchedFiles: false
             }
         })
-        return expect(async () => await ping()).toBeTruthy()
-    })
+
+        return expect(ping()).resolves.toBeTruthy()
+    }, 5000)
 
     afterEach(() => {
         configSpy.mockRestore()
