@@ -78,31 +78,30 @@ function run() {
             try {
                 const readStream = (0, fs_1.createReadStream)(file);
                 const writeStream = client.createWriteStream(uploadPath);
-                (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
-                readStream.pipe(writeStream);
-                writeStream.on('finish', () => __awaiter(this, void 0, void 0, function* () {
-                    if (yield client.exists(uploadPath)) {
-                        (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
-                        (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
-                        yield client.customRequest(uploadPath, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            data: 'method=UNZIP'
-                        });
-                        (0, core_1.notice)(`🎉 Unzipped ${uploadPath}`);
-                        (0, core_1.info)(`📦 Removing ${uploadPath}`);
-                        yield client.deleteFile(uploadPath);
-                        (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
-                    }
-                    else {
-                        throw new Error('Something went wrong during upload');
-                    }
-                }));
-                writeStream.on('error', err => {
+                new Promise((resolve, reject) => {
+                    (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
+                    readStream.pipe(writeStream);
+                    writeStream.on('close', resolve);
+                    writeStream.on('error', reject);
+                })
+                    .catch(err => {
                     throw err;
-                });
+                })
+                    .then(() => __awaiter(this, void 0, void 0, function* () {
+                    (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
+                    (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
+                    yield client.customRequest(uploadPath, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: 'method=UNZIP'
+                    });
+                    (0, core_1.notice)(`🎉 Unzipped ${uploadPath}`);
+                    (0, core_1.info)(`📦 Removing ${uploadPath}`);
+                    yield client.deleteFile(uploadPath);
+                    (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
+                }));
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);

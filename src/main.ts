@@ -51,11 +51,18 @@ async function run(): Promise<void> {
         try {
             const readStream = createReadStream(file);
             const writeStream = client.createWriteStream(uploadPath);
-            info(`📦 Uploading ${file} to ${uploadPath}`)
-            readStream.pipe(writeStream)
 
-            writeStream.on('finish', async () => {
-                if (await client.exists(uploadPath)) {
+            new Promise((resolve, reject) => {
+                info(`📦 Uploading ${file} to ${uploadPath}`)
+                readStream.pipe(writeStream)
+
+                writeStream.on('close', resolve);
+                writeStream.on('error', reject);
+            })
+                .catch(err => {
+                    throw err
+                })
+                .then(async () => {
                     notice(`🎉 Uploaded ${uploadPath}`)
 
                     info(`📦 Unzipping ${uploadPath}`)
@@ -71,14 +78,7 @@ async function run(): Promise<void> {
                     info(`📦 Removing ${uploadPath}`)
                     await client.deleteFile(uploadPath)
                     notice(`🎉 Removed ${uploadPath}`)
-                } else {
-                    throw new Error('Something went wrong during upload')
-                }
-            })
-
-            writeStream.on('error', err => {
-                throw err
-            })
+                })
         } catch (error) {
             info(`error: ${error}`)
             notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
