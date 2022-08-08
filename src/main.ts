@@ -75,6 +75,10 @@ async function run(): Promise<void> {
                     throw new Error('Something went wrong during upload')
                 }
             })
+
+            writeStream.on('error', err => {
+                throw err
+            })
         } catch (error) {
             info(`error: ${error}`)
             notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)

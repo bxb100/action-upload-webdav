@@ -100,6 +100,9 @@ function run() {
                         throw new Error('Something went wrong during upload');
                     }
                 }));
+                writeStream.on('error', err => {
+                    throw err;
+                });
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
