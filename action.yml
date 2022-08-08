@@ -1,4 +1,4 @@
-name: 'Upload WebDAV with certificate'
+name: 'Upload WebDAV ZIP'
 description: 'Github Action for uploading files to a webdav server with optional certificate'
 author: '@bxb100 aka John Bi & @tszalbot'
 inputs:
