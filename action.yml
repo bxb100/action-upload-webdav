@@ -14,6 +14,15 @@ inputs:
   webdav_upload_path:
     description: WebDAV upload path
     required: true
+  webdav_cert:
+    description: WebDAV certificate
+    required: false
+  webdav_ca:
+    description: WebDAV certificate ca
+    required: false
+  webdav_key:
+    description: WebDAV certificate key
+    required: false
   files:
     description: Newline-delimited list of path globs for asset files to upload
     required: true
