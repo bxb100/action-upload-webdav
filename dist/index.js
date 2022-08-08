@@ -76,25 +76,28 @@ function run() {
         for (const file of files) {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             try {
+                const readStream = (0, fs_1.createReadStream)(file);
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
-                (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
-                (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
-                (0, core_1.info)(`📦 Unzipping ${file}`);
-                yield client.customRequest(uploadPath, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    data: 'method=UNZIP'
-                });
-                (0, core_1.notice)(`🎉 Unzipped ${uploadPath}`);
-                (0, core_1.info)(`📦 Removing ${file}`);
-                yield client.deleteFile(uploadPath);
-                (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
+                readStream.pipe(client.createWriteStream(uploadPath));
+                readStream.on('end', () => __awaiter(this, void 0, void 0, function* () {
+                    (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
+                    (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
+                    yield client.customRequest(uploadPath, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: 'method=UNZIP'
+                    });
+                    (0, core_1.notice)(`🎉 Unzipped ${uploadPath}`);
+                    (0, core_1.info)(`📦 Removing ${file}`);
+                    yield client.deleteFile(uploadPath);
+                    (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
+                }));
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
-                (0, core_1.notice)(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
+                (0, core_1.notice)(`⛔ Failed to remove file '${file}' to '${uploadPath}'`);
             }
         }
     });

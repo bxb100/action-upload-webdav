@@ -49,26 +49,30 @@ async function run(): Promise<void> {
             path.basename(file)
         )
         try {
+            const readStream = createReadStream(file);
             info(`📦 Uploading ${file} to ${uploadPath}`)
-            createReadStream(file).pipe(client.createWriteStream(uploadPath))
-            notice(`🎉 Uploaded ${uploadPath}`)
+            readStream.pipe(client.createWriteStream(uploadPath))
 
-            info(`📦 Unzipping ${file}`)
-            await client.customRequest(uploadPath, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                data: 'method=UNZIP'
+            readStream.on('end', async () => {
+                notice(`🎉 Uploaded ${uploadPath}`)
+    
+                info(`📦 Unzipping ${uploadPath}`)
+                await client.customRequest(uploadPath, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data: 'method=UNZIP'
+                })
+                notice(`🎉 Unzipped ${uploadPath}`)
+    
+                info(`📦 Removing ${file}`)
+                await client.deleteFile(uploadPath)
+                notice(`🎉 Removed ${uploadPath}`)
             })
-            notice(`🎉 Unzipped ${uploadPath}`)
-
-            info(`📦 Removing ${file}`)
-            await client.deleteFile(uploadPath)
-            notice(`🎉 Removed ${uploadPath}`)
         } catch (error) {
             info(`error: ${error}`)
-            notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
+            notice(`⛔ Failed to remove file '${file}' to '${uploadPath}'`)
         }
     }
 }
