@@ -56,7 +56,7 @@ function run() {
             (0, core_1.notice)(`🤔 ${config.files} not include valid file.`);
         }
         let HttpsAgent;
-        if (config.webdavCert && config.webdavCa && config.webdavKey) {
+        if (config.webdavCert || config.webdavCa || config.webdavKey) {
             HttpsAgent = new https_1.Agent({
                 cert: config.webdavCert,
                 ca: config.webdavCa,

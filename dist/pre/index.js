@@ -20,12 +20,22 @@ exports.ping = void 0;
 const core_1 = __nccwpck_require__(2186);
 const webdav_1 = __nccwpck_require__(4032);
 const util_1 = __nccwpck_require__(4024);
+const https_1 = __nccwpck_require__(5687);
 const ping = () => __awaiter(void 0, void 0, void 0, function* () {
     const config = (0, util_1.parseConfig)();
+    let httpsAgent;
+    if (config.webdavCert || config.webdavCa || config.webdavKey) {
+        httpsAgent = new https_1.Agent({
+            cert: config.webdavCert,
+            ca: config.webdavCa,
+            key: config.webdavKey,
+        });
+    }
     (0, core_1.debug)(`config: ${JSON.stringify(config)}`);
     return (0, webdav_1.createClient)(config.webdavAddress, {
         username: config.webdavUsername,
-        password: config.webdavPassword
+        password: config.webdavPassword,
+        httpsAgent: httpsAgent
     })
         .exists('/')
         .then(exist => {

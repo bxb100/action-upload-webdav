@@ -23,7 +23,7 @@ async function run(): Promise<void> {
 
     let HttpsAgent;
 
-    if (config.webdavCert && config.webdavCa && config.webdavKey) {
+    if (config.webdavCert || config.webdavCa || config.webdavKey) {
         HttpsAgent = new Agent({
             cert: config.webdavCert,
             ca: config.webdavCa,
