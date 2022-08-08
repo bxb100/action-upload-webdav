@@ -80,7 +80,7 @@ function run() {
                 const writeStream = client.createWriteStream(uploadPath);
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 readStream.pipe(writeStream);
-                writeStream.on('close', () => __awaiter(this, void 0, void 0, function* () {
+                writeStream.on('finish', () => __awaiter(this, void 0, void 0, function* () {
                     if (yield client.exists(uploadPath)) {
                         (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
                         (0, core_1.info)(`📦 Unzipping ${uploadPath}`);

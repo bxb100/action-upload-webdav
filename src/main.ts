@@ -54,7 +54,7 @@ async function run(): Promise<void> {
             info(`📦 Uploading ${file} to ${uploadPath}`)
             readStream.pipe(writeStream)
 
-            writeStream.on('close', async () => {
+            writeStream.on('finish', async () => {
                 if (await client.exists(uploadPath)) {
                     notice(`🎉 Uploaded ${uploadPath}`)
 
