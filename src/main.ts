@@ -50,10 +50,11 @@ async function run(): Promise<void> {
         )
         try {
             const readStream = createReadStream(file);
+            const writeStream = client.createWriteStream(uploadPath);
             info(`📦 Uploading ${file} to ${uploadPath}`)
-            readStream.pipe(client.createWriteStream(uploadPath))
+            readStream.pipe(writeStream)
 
-            readStream.on('end', async () => {
+            writeStream.on('finish', async () => {
                 notice(`🎉 Uploaded ${uploadPath}`)
     
                 info(`📦 Unzipping ${uploadPath}`)
@@ -66,13 +67,14 @@ async function run(): Promise<void> {
                 })
                 notice(`🎉 Unzipped ${uploadPath}`)
     
-                info(`📦 Removing ${file}`)
+                info(`📦 Removing ${uploadPath}`)
                 await client.deleteFile(uploadPath)
                 notice(`🎉 Removed ${uploadPath}`)
             })
         } catch (error) {
             info(`error: ${error}`)
-            notice(`⛔ Failed to remove file '${file}' to '${uploadPath}'`)
+            notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
+            throw error
         }
     }
 }

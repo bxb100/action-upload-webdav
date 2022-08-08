@@ -77,9 +77,10 @@ function run() {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             try {
                 const readStream = (0, fs_1.createReadStream)(file);
+                const writeStream = client.createWriteStream(uploadPath);
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
-                readStream.pipe(client.createWriteStream(uploadPath));
-                readStream.on('end', () => __awaiter(this, void 0, void 0, function* () {
+                readStream.pipe(writeStream);
+                writeStream.on('finish', () => __awaiter(this, void 0, void 0, function* () {
                     (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
                     (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
                     yield client.customRequest(uploadPath, {
@@ -90,14 +91,15 @@ function run() {
                         data: 'method=UNZIP'
                     });
                     (0, core_1.notice)(`🎉 Unzipped ${uploadPath}`);
-                    (0, core_1.info)(`📦 Removing ${file}`);
+                    (0, core_1.info)(`📦 Removing ${uploadPath}`);
                     yield client.deleteFile(uploadPath);
                     (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
                 }));
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
-                (0, core_1.notice)(`⛔ Failed to remove file '${file}' to '${uploadPath}'`);
+                (0, core_1.notice)(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
+                throw error;
             }
         }
     });
