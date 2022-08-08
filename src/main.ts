@@ -3,6 +3,7 @@ import {filePaths, parseConfig, unmatchedPatterns} from './util'
 import {info, notice, setFailed} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
+import {Agent} from 'https'
 
 async function run(): Promise<void> {
     const config = parseConfig()
@@ -20,9 +21,20 @@ async function run(): Promise<void> {
         notice(`🤔 ${config.files} not include valid file.`)
     }
 
+    let HttpsAgent;
+
+    if (config.webdavCert && config.webdavCa && config.webdavKey) {
+        HttpsAgent = new Agent({
+            cert: config.webdavCert,
+            ca: config.webdavCa,
+            key: config.webdavKey,
+        })
+    }
+
     const client = createClient(config.webdavAddress, {
         username: config.webdavUsername,
-        password: config.webdavPassword
+        password: config.webdavPassword,
+        httpsAgent: HttpsAgent
     })
 
     // first be sure there are have directory

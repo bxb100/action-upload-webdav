@@ -7,6 +7,9 @@ export interface Config {
     webdavUsername: string
     webdavPassword: string
     webdavUploadPath: string
+    webdavCert?: string
+    webdavCa?: string
+    webdavKey?: string
     files: string[]
     failOnUnmatchedFiles: boolean
 }
@@ -20,6 +23,9 @@ export const parseConfig = (): Config => {
             webdavUploadPath: core.getInput('webdav_upload_path', {
                 required: true
             }),
+            webdavCert: core.getInput('webdav_cert', {required: false}),
+            webdavCa: core.getInput('webdav_ca', {required: false}),
+            webdavKey: core.getInput('webdav_key', {required: false}),
             files: core.getMultilineInput('files', {
                 required: true,
                 trimWhitespace: true

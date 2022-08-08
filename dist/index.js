@@ -40,6 +40,7 @@ const util_1 = __nccwpck_require__(4024);
 const core_1 = __nccwpck_require__(2186);
 const webdav_1 = __nccwpck_require__(4032);
 const fs_1 = __nccwpck_require__(7147);
+const https_1 = __nccwpck_require__(5687);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const config = (0, util_1.parseConfig)();
@@ -54,9 +55,18 @@ function run() {
         if (files.length === 0) {
             (0, core_1.notice)(`🤔 ${config.files} not include valid file.`);
         }
+        let HttpsAgent;
+        if (config.webdavCert && config.webdavCa && config.webdavKey) {
+            HttpsAgent = new https_1.Agent({
+                cert: config.webdavCert,
+                ca: config.webdavCa,
+                key: config.webdavKey,
+            });
+        }
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
             username: config.webdavUsername,
-            password: config.webdavPassword
+            password: config.webdavPassword,
+            httpsAgent: HttpsAgent
         });
         // first be sure there are have directory
         if ((yield client.exists(config.webdavUploadPath)) === false) {
@@ -128,6 +138,9 @@ const parseConfig = () => {
             webdavUploadPath: core.getInput('webdav_upload_path', {
                 required: true
             }),
+            webdavCert: core.getInput('webdav_cert', { required: false }),
+            webdavCa: core.getInput('webdav_ca', { required: false }),
+            webdavKey: core.getInput('webdav_key', { required: false }),
             files: core.getMultilineInput('files', {
                 required: true,
                 trimWhitespace: true

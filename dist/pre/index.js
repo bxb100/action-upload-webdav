@@ -88,6 +88,9 @@ const parseConfig = () => {
             webdavUploadPath: core.getInput('webdav_upload_path', {
                 required: true
             }),
+            webdavCert: core.getInput('webdav_cert', { required: false }),
+            webdavCa: core.getInput('webdav_ca', { required: false }),
+            webdavKey: core.getInput('webdav_key', { required: false }),
             files: core.getMultilineInput('files', {
                 required: true,
                 trimWhitespace: true
