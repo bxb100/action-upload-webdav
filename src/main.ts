@@ -52,33 +52,28 @@ async function run(): Promise<void> {
             const readStream = createReadStream(file);
             const writeStream = client.createWriteStream(uploadPath);
 
-            new Promise((resolve, reject) => {
-                info(`📦 Uploading ${file} to ${uploadPath}`)
+            info(`📦 Uploading ${file} to ${uploadPath}`)
+            await new Promise((resolve, reject) => {
                 readStream.pipe(writeStream)
 
-                writeStream.on('close', resolve);
-                writeStream.on('error', reject);
+                writeStream.on('close', resolve)
+                writeStream.on('error', reject)
             })
-                .catch(err => {
-                    throw err
-                })
-                .then(async () => {
-                    notice(`🎉 Uploaded ${uploadPath}`)
+            notice(`🎉 Uploaded ${uploadPath}`)
 
-                    info(`📦 Unzipping ${uploadPath}`)
-                    await client.customRequest(uploadPath, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        data: 'method=UNZIP'
-                    })
-                    notice(`🎉 Unzipped ${uploadPath}`)
+            info(`📦 Unzipping ${uploadPath}`)
+            await client.customRequest(uploadPath, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data: 'method=UNZIP'
+            })
+            notice(`🎉 Unzipped ${uploadPath}`)
 
-                    info(`📦 Removing ${uploadPath}`)
-                    await client.deleteFile(uploadPath)
-                    notice(`🎉 Removed ${uploadPath}`)
-                })
+            info(`📦 Removing ${uploadPath}`)
+            await client.deleteFile(uploadPath)
+            notice(`🎉 Removed ${uploadPath}`)
         } catch (error) {
             info(`error: ${error}`)
             notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
