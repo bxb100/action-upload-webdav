@@ -21,13 +21,13 @@ async function run(): Promise<void> {
         notice(`🤔 ${config.files} not include valid file.`)
     }
 
-    let HttpsAgent;
+    let HttpsAgent
 
     if (config.webdavCert || config.webdavCa || config.webdavKey) {
         HttpsAgent = new Agent({
             cert: config.webdavCert,
             ca: config.webdavCa,
-            key: config.webdavKey,
+            key: config.webdavKey
         })
     }
 
@@ -49,39 +49,37 @@ async function run(): Promise<void> {
             path.basename(file)
         )
         try {
-            const readStream = createReadStream(file);
-            const writeStream = client.createWriteStream(uploadPath);
+            const readStream = createReadStream(file)
+            const writeStream = client.createWriteStream(uploadPath)
 
             info(`📦 Uploading ${file} to ${uploadPath}`)
             await new Promise((resolve, reject) => {
                 readStream.pipe(writeStream)
 
-                // TODO: somehow the rest does not execute
-                writeStream.on('close', async () => {
-                    notice(`🎉 Uploaded ${uploadPath}`)
-        
-                    info(`📦 Unzipping ${uploadPath}`)
-                    await client.customRequest(uploadPath, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        data: 'method=UNZIP'
-                    })
-                    notice(`🎉 Unzipped ${uploadPath}`)
-        
-                    info(`📦 Removing ${uploadPath}`)
-                    await client.deleteFile(uploadPath)
-                    notice(`🎉 Removed ${uploadPath}`)
-
-                    resolve(null)
-                })
-
-                writeStream.on('error', err => {
-                    reject(err)
-                    throw err
-                })
+                writeStream.on('close', resolve)
+                writeStream.on('error', reject)
             })
+            notice(`🎉 Uploaded ${uploadPath}`)
+
+            let checkTries = 0
+
+            while (!(await client.exists(uploadPath)) && checkTries++ < 10) {
+                info(`⏳ Waiting for ${uploadPath} to become available`)
+            }
+
+            info(`📦 Unzipping ${uploadPath}`)
+            await client.customRequest(uploadPath, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data: 'method=UNZIP'
+            })
+            notice(`🎉 Unzipped ${uploadPath}`)
+
+            info(`📦 Removing ${uploadPath}`)
+            await client.deleteFile(uploadPath)
+            notice(`🎉 Removed ${uploadPath}`)
         } catch (error) {
             info(`error: ${error}`)
             notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)

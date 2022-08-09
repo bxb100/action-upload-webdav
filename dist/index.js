@@ -60,7 +60,7 @@ function run() {
             HttpsAgent = new https_1.Agent({
                 cert: config.webdavCert,
                 ca: config.webdavCa,
-                key: config.webdavKey,
+                key: config.webdavKey
             });
         }
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
@@ -81,28 +81,26 @@ function run() {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 yield new Promise((resolve, reject) => {
                     readStream.pipe(writeStream);
-                    // TODO: somehow the rest does not execute
-                    writeStream.on('close', () => __awaiter(this, void 0, void 0, function* () {
-                        (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
-                        (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
-                        yield client.customRequest(uploadPath, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            data: 'method=UNZIP'
-                        });
-                        (0, core_1.notice)(`🎉 Unzipped ${uploadPath}`);
-                        (0, core_1.info)(`📦 Removing ${uploadPath}`);
-                        yield client.deleteFile(uploadPath);
-                        (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
-                        resolve(null);
-                    }));
-                    writeStream.on('error', err => {
-                        reject(err);
-                        throw err;
-                    });
+                    writeStream.on('close', resolve);
+                    writeStream.on('error', reject);
                 });
+                (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
+                let checkTries = 0;
+                while (!(yield client.exists(uploadPath)) && checkTries++ < 10) {
+                    (0, core_1.info)(`⏳ Waiting for ${uploadPath} to become available`);
+                }
+                (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
+                yield client.customRequest(uploadPath, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data: 'method=UNZIP'
+                });
+                (0, core_1.notice)(`🎉 Unzipped ${uploadPath}`);
+                (0, core_1.info)(`📦 Removing ${uploadPath}`);
+                yield client.deleteFile(uploadPath);
+                (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
