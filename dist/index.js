@@ -81,7 +81,7 @@ function run() {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 yield new Promise((resolve, reject) => {
                     readStream.pipe(writeStream);
-                    writeStream.on('close', resolve);
+                    writeStream.on('finish', resolve);
                     writeStream.on('error', reject);
                 });
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);

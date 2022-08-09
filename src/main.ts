@@ -56,7 +56,7 @@ async function run(): Promise<void> {
             await new Promise((resolve, reject) => {
                 readStream.pipe(writeStream)
 
-                writeStream.on('close', resolve)
+                writeStream.on('finish', resolve)
                 writeStream.on('error', reject)
             })
             notice(`🎉 Uploaded ${uploadPath}`)
