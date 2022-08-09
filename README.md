@@ -20,7 +20,7 @@ A Github Action for uploading files to a webdav demandware server
     files: "./test/**"
  ```
  
- ### With client certificate
+ ## :cartwheeling: With client certificate
 
 ```yaml
   uses: tszalbot/action-upload-webdav@v1
