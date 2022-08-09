@@ -56,6 +56,7 @@ async function run(): Promise<void> {
             await new Promise((resolve, reject) => {
                 readStream.pipe(writeStream)
 
+                // TODO: somehow the rest does not execute
                 writeStream.on('close', async () => {
                     notice(`🎉 Uploaded ${uploadPath}`)
         
@@ -75,7 +76,11 @@ async function run(): Promise<void> {
 
                     resolve(null)
                 })
-                writeStream.on('error', reject)
+
+                writeStream.on('error', err => {
+                    reject(err)
+                    throw err
+                })
             })
         } catch (error) {
             info(`error: ${error}`)

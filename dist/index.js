@@ -81,6 +81,7 @@ function run() {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 yield new Promise((resolve, reject) => {
                     readStream.pipe(writeStream);
+                    // TODO: somehow the rest does not execute
                     writeStream.on('close', () => __awaiter(this, void 0, void 0, function* () {
                         (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
                         (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
@@ -97,7 +98,10 @@ function run() {
                         (0, core_1.notice)(`🎉 Removed ${uploadPath}`);
                         resolve(null);
                     }));
-                    writeStream.on('error', reject);
+                    writeStream.on('error', err => {
+                        reject(err);
+                        throw err;
+                    });
                 });
             }
             catch (error) {
