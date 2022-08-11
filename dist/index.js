@@ -91,7 +91,7 @@ function run() {
                     writeStream.on('unpipe', () => (0, core_1.info)('unpipe'));
                     writeStream.on('finish', () => (0, core_1.info)('finish'));
                     writeStream.on('end', () => (0, core_1.info)('end'));
-                    writeStream.on('drain', () => (0, core_1.info)('drain'));
+                    writeStream.on('close', () => (0, core_1.info)('close'));
                 });
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
                 let checkTries = 0;
