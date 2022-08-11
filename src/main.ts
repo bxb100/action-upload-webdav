@@ -62,7 +62,7 @@ async function run(): Promise<void> {
             await new Promise((resolve, reject) => {
                 readStream.pipe(writeStream)
 
-                writeStream.on('close', resolve)
+                writeStream.on('end', resolve)
                 writeStream.on('error', reject)
 
                 writeStream.on('unpipe', () => info('unpipe'))
