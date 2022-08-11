@@ -52,6 +52,12 @@ async function run(): Promise<void> {
             const readStream = createReadStream(file)
             const writeStream = client.createWriteStream(uploadPath)
 
+            if (await client.exists(uploadPath)) {
+                info(`📦 Cleaning up ${uploadPath} first`)
+                await client.deleteFile(uploadPath)
+                notice(`🎉 Cleaned up ${uploadPath}`)
+            }
+
             info(`📦 Uploading ${file} to ${uploadPath}`)
             await new Promise((resolve, reject) => {
                 readStream.pipe(writeStream)

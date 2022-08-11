@@ -78,6 +78,11 @@ function run() {
             try {
                 const readStream = (0, fs_1.createReadStream)(file);
                 const writeStream = client.createWriteStream(uploadPath);
+                if (yield client.exists(uploadPath)) {
+                    (0, core_1.info)(`📦 Cleaning up ${uploadPath} first`);
+                    yield client.deleteFile(uploadPath);
+                    (0, core_1.notice)(`🎉 Cleaned up ${uploadPath}`);
+                }
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 yield new Promise((resolve, reject) => {
                     readStream.pipe(writeStream);
