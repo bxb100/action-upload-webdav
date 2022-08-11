@@ -5,6 +5,8 @@ import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
 import {Agent} from 'https'
 
+const eos = require('end-of-stream')
+
 async function run(): Promise<void> {
     const config = parseConfig()
 
@@ -68,6 +70,16 @@ async function run(): Promise<void> {
                 writeStream.on('end', () => info('end'))
                 writeStream.on('close', () => info('close'))
                 // DEBUG
+
+                eos(writeStream, (err: Error) => {
+                    if (err) {
+                        reject(err)
+                        return
+                    }
+
+                    info('eos')
+                    resolve(null)
+                })
 
                 writeStream.on('close', resolve)
                 writeStream.on('error', reject)
