@@ -88,6 +88,10 @@ function run() {
                     readStream.pipe(writeStream);
                     writeStream.on('close', resolve);
                     writeStream.on('error', reject);
+                    writeStream.on('unpipe', () => (0, core_1.info)('unpipe'));
+                    writeStream.on('finish', () => (0, core_1.info)('finish'));
+                    writeStream.on('end', () => (0, core_1.info)('end'));
+                    writeStream.on('drain', () => (0, core_1.info)('drain'));
                 });
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
                 let checkTries = 0;

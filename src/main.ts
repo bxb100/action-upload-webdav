@@ -64,6 +64,11 @@ async function run(): Promise<void> {
 
                 writeStream.on('close', resolve)
                 writeStream.on('error', reject)
+
+                writeStream.on('unpipe', () => info('unpipe'))
+                writeStream.on('finish', () => info('finish'))
+                writeStream.on('end', () => info('end'))
+                writeStream.on('drain', () => info('drain'))
             })
             notice(`🎉 Uploaded ${uploadPath}`)
 
