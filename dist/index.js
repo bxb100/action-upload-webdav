@@ -87,6 +87,7 @@ function run() {
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
                 let checkTries = 0;
                 while (!(yield client.exists(uploadPath)) && checkTries++ < 10) {
+                    yield new Promise(r => setTimeout(r, 1000)); // sleep for 1s
                     (0, core_1.info)(`⏳ Waiting for ${uploadPath} to become available`);
                 }
                 (0, core_1.info)(`📦 Unzipping ${uploadPath}`);

@@ -64,6 +64,7 @@ async function run(): Promise<void> {
             let checkTries = 0
 
             while (!(await client.exists(uploadPath)) && checkTries++ < 10) {
+                await new Promise(r => setTimeout(r, 1000)) // sleep for 1s
                 info(`⏳ Waiting for ${uploadPath} to become available`)
             }
 
