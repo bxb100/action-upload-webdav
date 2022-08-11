@@ -77,22 +77,23 @@ function run() {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             try {
                 const readStream = (0, fs_1.createReadStream)(file);
-                const writeStream = client.createWriteStream(uploadPath);
+                // const writeStream = client.createWriteStream(uploadPath)
                 if (yield client.exists(uploadPath)) {
                     (0, core_1.info)(`📦 Cleaning up ${uploadPath} first`);
                     yield client.deleteFile(uploadPath);
                     (0, core_1.notice)(`🎉 Cleaned up ${uploadPath}`);
                 }
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
-                yield new Promise((resolve, reject) => {
-                    readStream.pipe(writeStream);
-                    writeStream.on('end', resolve);
-                    writeStream.on('error', reject);
-                    writeStream.on('unpipe', () => (0, core_1.info)('unpipe'));
-                    writeStream.on('finish', () => (0, core_1.info)('finish'));
-                    writeStream.on('end', () => (0, core_1.info)('end'));
-                    writeStream.on('close', () => (0, core_1.info)('close'));
-                });
+                // await new Promise((resolve, reject) => {
+                //     readStream.pipe(writeStream)
+                //     writeStream.on('end', resolve)
+                //     writeStream.on('error', reject)
+                //     writeStream.on('unpipe', () => info('unpipe'))
+                //     writeStream.on('finish', () => info('finish'))
+                //     writeStream.on('end', () => info('end'))
+                //     writeStream.on('close', () => info('close'))
+                // })
+                yield client.putFileContents(uploadPath, readStream);
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
                 let checkTries = 0;
                 while (!(yield client.exists(uploadPath)) && checkTries++ < 10) {

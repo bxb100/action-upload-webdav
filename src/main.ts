@@ -50,7 +50,7 @@ async function run(): Promise<void> {
         )
         try {
             const readStream = createReadStream(file)
-            const writeStream = client.createWriteStream(uploadPath)
+            // const writeStream = client.createWriteStream(uploadPath)
 
             if (await client.exists(uploadPath)) {
                 info(`📦 Cleaning up ${uploadPath} first`)
@@ -59,17 +59,18 @@ async function run(): Promise<void> {
             }
 
             info(`📦 Uploading ${file} to ${uploadPath}`)
-            await new Promise((resolve, reject) => {
-                readStream.pipe(writeStream)
+            // await new Promise((resolve, reject) => {
+            //     readStream.pipe(writeStream)
 
-                writeStream.on('end', resolve)
-                writeStream.on('error', reject)
+            //     writeStream.on('end', resolve)
+            //     writeStream.on('error', reject)
 
-                writeStream.on('unpipe', () => info('unpipe'))
-                writeStream.on('finish', () => info('finish'))
-                writeStream.on('end', () => info('end'))
-                writeStream.on('close', () => info('close'))
-            })
+            //     writeStream.on('unpipe', () => info('unpipe'))
+            //     writeStream.on('finish', () => info('finish'))
+            //     writeStream.on('end', () => info('end'))
+            //     writeStream.on('close', () => info('close'))
+            // })
+            await client.putFileContents(uploadPath, readStream)
             notice(`🎉 Uploaded ${uploadPath}`)
 
             let checkTries = 0
