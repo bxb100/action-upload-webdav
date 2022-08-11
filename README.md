@@ -5,13 +5,13 @@
   action upload-webdav
 </h1>
 <p align="center">
-A Github Action for uploading files to a webdav server
+A Github Action for uploading files to a webdav demandware server
 </p>
 
 ## :cartwheeling: Usage
 
 ```yaml
-  uses: bxb100/action-upload-webdav@v1
+  uses: tszalbot/action-upload-webdav@v1
   with:
     webdav_address: ${{secrets.address}}
     webdav_username: ${{secrets.username}}
@@ -19,8 +19,23 @@ A Github Action for uploading files to a webdav server
     webdav_upload_path: "/data"
     files: "./test/**"
  ```
+ 
+ ## :cartwheeling: With client certificate
 
-> :warning: for security purpose, please using the Actions secrets, check in <https://docs.github.com/en/actions/security-guides/encrypted-secrets>
+```yaml
+  uses: tszalbot/action-upload-webdav@v1
+  with:
+    webdav_address: ${{secrets.address}}
+    webdav_username: ${{secrets.username}}
+    webdav_password: ${{secrets.password}}
+    webdav_cert: ${{secrets.cert}}
+    webdav_ca: ${{secrets.ca}}
+    webdav_key: ${{secrets.key}}
+    webdav_upload_path: "/data"
+    files: "./test/**"
+ ```
+
+> :warning: for security purpose, please use the Actions secrets, check in <https://docs.github.com/en/actions/security-guides/encrypted-secrets>
 
 ## :writing_hand: All Parameters
 
@@ -29,6 +44,9 @@ A Github Action for uploading files to a webdav server
 |`webdav_address`|WebDAV address| - |
 |`webdav_username`|WebDAV username| - |
 |`webdav_password`|WebDAV password| - |
+|`webdav_cert`|WebDAV client certificate (optional). Usually the .crt file| - |
+|`webdav_ca`|WebDAV client certificate bundle (optional). Usually the .pem file| - |
+|`webdav_key`|WebDAV client certificate key (optional). Usually the .key file| - |
 |`webdav_upload_path`| The WebDAV path where you want to upload, Some server not support root path | - |
 |[`files`](#files)| Newline-delimited list of path globs for asset files to upload <br> :feet: You can learn more about multi-line yaml syntax [here](https://yaml-multiline.info/) | - |
 |`fail_on_unmatched_files`|Fail the action when exist unmatch file pattern| false |
