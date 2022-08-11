@@ -5,8 +5,6 @@ import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
 import {Agent} from 'https'
 
-const eos = require('end-of-stream')
-
 async function run(): Promise<void> {
     const config = parseConfig()
 
@@ -36,6 +34,7 @@ async function run(): Promise<void> {
     const client = createClient(config.webdavAddress, {
         username: config.webdavUsername,
         password: config.webdavPassword,
+        maxBodyLength: 100000000,
         httpsAgent: HttpsAgent
     })
 
@@ -52,46 +51,10 @@ async function run(): Promise<void> {
         )
         try {
             const readStream = createReadStream(file)
-            const writeStream = client.createWriteStream(uploadPath)
-
-            if (await client.exists(uploadPath)) {
-                info(`📦 Cleaning up ${uploadPath} first`)
-                await client.deleteFile(uploadPath)
-                notice(`🎉 Cleaned up ${uploadPath}`)
-            }
 
             info(`📦 Uploading ${file} to ${uploadPath}`)
-            await new Promise((resolve, reject) => {
-                readStream.pipe(writeStream)
-
-                // DEBUG
-                writeStream.on('unpipe', () => info('unpipe'))
-                writeStream.on('finish', () => info('finish'))
-                writeStream.on('end', () => info('end'))
-                writeStream.on('close', () => info('close'))
-                // DEBUG
-
-                eos(writeStream, (err: Error) => {
-                    if (err) {
-                        reject(err)
-                        return
-                    }
-
-                    info('eos')
-                    resolve(null)
-                })
-
-                writeStream.on('close', resolve)
-                writeStream.on('error', reject)
-            })
+            await client.putFileContents(uploadPath, readStream)
             notice(`🎉 Uploaded ${uploadPath}`)
-
-            let checkTries = 0
-
-            while (!(await client.exists(uploadPath)) && checkTries++ < 10) {
-                await new Promise(r => setTimeout(r, 1000)) // sleep for 1s
-                info(`⏳ Waiting for ${uploadPath} to become available`)
-            }
 
             info(`📦 Unzipping ${uploadPath}`)
             await client.customRequest(uploadPath, {

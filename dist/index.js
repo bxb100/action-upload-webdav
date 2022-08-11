@@ -41,7 +41,6 @@ const core_1 = __nccwpck_require__(2186);
 const webdav_1 = __nccwpck_require__(4032);
 const fs_1 = __nccwpck_require__(7147);
 const https_1 = __nccwpck_require__(5687);
-const eos = __nccwpck_require__(1205);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const config = (0, util_1.parseConfig)();
@@ -67,6 +66,7 @@ function run() {
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
             username: config.webdavUsername,
             password: config.webdavPassword,
+            maxBodyLength: 100000000,
             httpsAgent: HttpsAgent
         });
         // first be sure there are have directory
@@ -78,38 +78,9 @@ function run() {
             const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             try {
                 const readStream = (0, fs_1.createReadStream)(file);
-                const writeStream = client.createWriteStream(uploadPath);
-                if (yield client.exists(uploadPath)) {
-                    (0, core_1.info)(`📦 Cleaning up ${uploadPath} first`);
-                    yield client.deleteFile(uploadPath);
-                    (0, core_1.notice)(`🎉 Cleaned up ${uploadPath}`);
-                }
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
-                yield new Promise((resolve, reject) => {
-                    readStream.pipe(writeStream);
-                    // DEBUG
-                    writeStream.on('unpipe', () => (0, core_1.info)('unpipe'));
-                    writeStream.on('finish', () => (0, core_1.info)('finish'));
-                    writeStream.on('end', () => (0, core_1.info)('end'));
-                    writeStream.on('close', () => (0, core_1.info)('close'));
-                    // DEBUG
-                    eos(writeStream, (err) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-                        (0, core_1.info)('eos');
-                        resolve(null);
-                    });
-                    writeStream.on('close', resolve);
-                    writeStream.on('error', reject);
-                });
+                yield client.putFileContents(uploadPath, readStream);
                 (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
-                let checkTries = 0;
-                while (!(yield client.exists(uploadPath)) && checkTries++ < 10) {
-                    yield new Promise(r => setTimeout(r, 1000)); // sleep for 1s
-                    (0, core_1.info)(`⏳ Waiting for ${uploadPath} to become available`);
-                }
                 (0, core_1.info)(`📦 Unzipping ${uploadPath}`);
                 yield client.customRequest(uploadPath, {
                     method: 'POST',
@@ -8293,107 +8264,6 @@ DelayedStream.prototype._checkIfMaxDataSizeExceeded = function() {
 
 /***/ }),
 
-/***/ 1205:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var once = __nccwpck_require__(1223);
-
-var noop = function() {};
-
-var isRequest = function(stream) {
-	return stream.setHeader && typeof stream.abort === 'function';
-};
-
-var isChildProcess = function(stream) {
-	return stream.stdio && Array.isArray(stream.stdio) && stream.stdio.length === 3
-};
-
-var eos = function(stream, opts, callback) {
-	if (typeof opts === 'function') return eos(stream, null, opts);
-	if (!opts) opts = {};
-
-	callback = once(callback || noop);
-
-	var ws = stream._writableState;
-	var rs = stream._readableState;
-	var readable = opts.readable || (opts.readable !== false && stream.readable);
-	var writable = opts.writable || (opts.writable !== false && stream.writable);
-	var cancelled = false;
-
-	var onlegacyfinish = function() {
-		if (!stream.writable) onfinish();
-	};
-
-	var onfinish = function() {
-		writable = false;
-		if (!readable) callback.call(stream);
-	};
-
-	var onend = function() {
-		readable = false;
-		if (!writable) callback.call(stream);
-	};
-
-	var onexit = function(exitCode) {
-		callback.call(stream, exitCode ? new Error('exited with error code: ' + exitCode) : null);
-	};
-
-	var onerror = function(err) {
-		callback.call(stream, err);
-	};
-
-	var onclose = function() {
-		process.nextTick(onclosenexttick);
-	};
-
-	var onclosenexttick = function() {
-		if (cancelled) return;
-		if (readable && !(rs && (rs.ended && !rs.destroyed))) return callback.call(stream, new Error('premature close'));
-		if (writable && !(ws && (ws.ended && !ws.destroyed))) return callback.call(stream, new Error('premature close'));
-	};
-
-	var onrequest = function() {
-		stream.req.on('finish', onfinish);
-	};
-
-	if (isRequest(stream)) {
-		stream.on('complete', onfinish);
-		stream.on('abort', onclose);
-		if (stream.req) onrequest();
-		else stream.on('request', onrequest);
-	} else if (writable && !ws) { // legacy streams
-		stream.on('end', onlegacyfinish);
-		stream.on('close', onlegacyfinish);
-	}
-
-	if (isChildProcess(stream)) stream.on('exit', onexit);
-
-	stream.on('end', onend);
-	stream.on('finish', onfinish);
-	if (opts.error !== false) stream.on('error', onerror);
-	stream.on('close', onclose);
-
-	return function() {
-		cancelled = true;
-		stream.removeListener('complete', onfinish);
-		stream.removeListener('abort', onclose);
-		stream.removeListener('request', onrequest);
-		if (stream.req) stream.req.removeListener('finish', onfinish);
-		stream.removeListener('end', onlegacyfinish);
-		stream.removeListener('close', onlegacyfinish);
-		stream.removeListener('finish', onfinish);
-		stream.removeListener('exit', onexit);
-		stream.removeListener('end', onend);
-		stream.removeListener('error', onerror);
-		stream.removeListener('close', onclose);
-	};
-};
-
-module.exports = eos;
-
-
-/***/ }),
-
 /***/ 5152:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -13217,55 +13087,6 @@ function traverse(object, path) {
 
 function isLastSegment(segments, index) {
   return segments.length === index + 1;
-}
-
-
-/***/ }),
-
-/***/ 1223:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var wrappy = __nccwpck_require__(2940)
-module.exports = wrappy(once)
-module.exports.strict = wrappy(onceStrict)
-
-once.proto = once(function () {
-  Object.defineProperty(Function.prototype, 'once', {
-    value: function () {
-      return once(this)
-    },
-    configurable: true
-  })
-
-  Object.defineProperty(Function.prototype, 'onceStrict', {
-    value: function () {
-      return onceStrict(this)
-    },
-    configurable: true
-  })
-})
-
-function once (fn) {
-  var f = function () {
-    if (f.called) return f.value
-    f.called = true
-    return f.value = fn.apply(this, arguments)
-  }
-  f.called = false
-  return f
-}
-
-function onceStrict (fn) {
-  var f = function () {
-    if (f.called)
-      throw new Error(f.onceError)
-    f.called = true
-    return f.value = fn.apply(this, arguments)
-  }
-  var name = fn.name || 'Function wrapped with `once`'
-  f.onceError = name + " shouldn't be called more than once"
-  f.called = false
-  return f
 }
 
 
@@ -18521,46 +18342,6 @@ class Minimatch {
 }
 
 minimatch.Minimatch = Minimatch
-
-
-/***/ }),
-
-/***/ 2940:
-/***/ ((module) => {
-
-// Returns a wrapper function that returns a wrapped callback
-// The wrapper function should do some stuff, and return a
-// presumably different callback function.
-// This makes sure that own properties are retained, so that
-// decorations and such are not lost along the way.
-module.exports = wrappy
-function wrappy (fn, cb) {
-  if (fn && cb) return wrappy(fn)(cb)
-
-  if (typeof fn !== 'function')
-    throw new TypeError('need wrapper function')
-
-  Object.keys(fn).forEach(function (k) {
-    wrapper[k] = fn[k]
-  })
-
-  return wrapper
-
-  function wrapper() {
-    var args = new Array(arguments.length)
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i]
-    }
-    var ret = fn.apply(this, args)
-    var cb = args[args.length-1]
-    if (typeof ret === 'function' && ret !== cb) {
-      Object.keys(cb).forEach(function (k) {
-        ret[k] = cb[k]
-      })
-    }
-    return ret
-  }
-}
 
 
 /***/ }),

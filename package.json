@@ -29,7 +29,6 @@
     "@actions/core": "1.6.0",
     "@actions/github": "5.0.0",
     "@actions/glob": "0.2.0",
-    "end-of-stream": "^1.4.4",
     "webdav": "^4.10.0"
   },
   "devDependencies": {
