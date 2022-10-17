@@ -50,7 +50,7 @@ A Github Action for uploading files to a webdav demandware server
 |`webdav_upload_path`| The WebDAV path where you want to upload, Some server not support root path | - |
 |[`files`](#files)| Newline-delimited list of path globs for asset files to upload <br> :feet: You can learn more about multi-line yaml syntax [here](https://yaml-multiline.info/) | - |
 |`fail_on_unmatched_files`|Fail the action when exist unmatch file pattern| false |
-> :no_bicycles: Now we just support the basic authentication
+> :no_bicycles: Now we just support the basic authentication and certificates
 >
 > :warning: If the upload path contains same file name, the file will be overwritten
 
