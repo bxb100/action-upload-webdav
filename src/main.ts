@@ -15,6 +15,7 @@ async function run(): Promise<void> {
         throw new Error(`⛔ There were unmatched files`)
     }
 
+    info(`Current directory: ${process.cwd()}`)
     const files = await filePaths(config.files)
     if (files.length === 0) {
         notice(`🤔 ${config.files} not include valid file.`)
@@ -25,8 +26,8 @@ async function run(): Promise<void> {
         password: config.webdavPassword
     })
 
-    // first be sure there are have directory
-    if ((await client.exists(config.webdavUploadPath)) === false) {
+    // first be sure there are have a directory
+    if (!(await client.exists(config.webdavUploadPath))) {
         await client.createDirectory(config.webdavUploadPath, {recursive: true})
     }
     for (const file of files) {
