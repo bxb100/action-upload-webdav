@@ -5,6 +5,7 @@ import * as path from 'path'
 const rootPath = path.join(__dirname, '..')
 
 describe('util', () => {
+
     describe('paths', () => {
         it('expect github glob function', async () => {
             assert.deepStrictEqual(
@@ -63,5 +64,24 @@ describe('util', () => {
                 ['test/data/does/not/exist/*']
             )
         })
+
+				it("github issue 30: not found ftl file", async () => {
+
+					console.info(`leading . segment will replace`, process.cwd())
+
+					assert.deepStrictEqual(await filePaths(['./__tests__/staging/**/*.ftl']), [
+						path.join(rootPath, '__tests__/staging/a.ftl'),
+						path.join(rootPath, '__tests__/staging/other/b.ftl'),
+					])
+
+					assert.deepStrictEqual(await filePaths(['./**/staging/**/*.ftl']), [
+						path.join(rootPath, '__tests__/staging/a.ftl'),
+						path.join(rootPath, '__tests__/staging/other/b.ftl'),
+					])
+
+					assert.deepStrictEqual(await filePaths(['./__tests__/staging/*.ftl']), [
+						path.join(rootPath, '__tests__/staging/a.ftl'),
+					])
+				})
     })
 })
