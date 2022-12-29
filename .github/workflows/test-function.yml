@@ -1,6 +1,6 @@
 name: test function
 
-on: 
+on:
   push:
     branches: main
   workflow_dispatch:
@@ -18,3 +18,4 @@ jobs:
           webdav_password: ${{secrets.password}}
           webdav_upload_path: "/data"
           files: "./test/**"
+          keep_structure: true

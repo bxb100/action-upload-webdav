@@ -1,5 +1,11 @@
 import * as path from 'path'
-import {filePaths, parseConfig, unmatchedPatterns} from './util'
+import {
+    filePaths,
+    parseConfig,
+    pathMeta,
+    searchPaths,
+    unmatchedPatterns
+} from './util'
 import {info, notice, setFailed} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
@@ -20,6 +26,12 @@ async function run(): Promise<void> {
     if (files.length === 0) {
         notice(`🤔 ${config.files} not include valid file.`)
     }
+    const searchPath = await searchPaths(config.files)
+    if (config.keepStructure && searchPath.length > 1) {
+        throw new Error(
+            `⛔ 'keep_structure' is not supported when multiple paths are specified`
+        )
+    }
 
     const client = createClient(config.webdavAddress, {
         username: config.webdavUsername,
@@ -31,10 +43,16 @@ async function run(): Promise<void> {
         await client.createDirectory(config.webdavUploadPath, {recursive: true})
     }
     for (const file of files) {
-        const uploadPath = path.join(
-            config.webdavUploadPath,
-            path.basename(file)
-        )
+        let uploadPath = path.join(config.webdavUploadPath, path.basename(file))
+        if (config.keepStructure) {
+            const meta = pathMeta(file, searchPath[0])
+            await client.createDirectory(
+                path.join(config.webdavUploadPath, meta.dir),
+                {recursive: true}
+            )
+            uploadPath = path.join(config.webdavUploadPath, meta.dir, meta.base)
+        }
+
         try {
             info(`📦 Uploading ${file} to ${uploadPath}`)
             createReadStream(file).pipe(client.createWriteStream(uploadPath))

@@ -17,8 +17,11 @@ inputs:
   files:
     description: Newline-delimited list of path globs for asset files to upload
     required: true
+  keep_structure:
+    description: Keep the structure of the files
+    required: false
   fail_on_unmatched_files:
-    description: Fail the action when exist unmatch file
+    description: Fail the action when exist unmatched file
     default: "false"
     required: false
 runs:

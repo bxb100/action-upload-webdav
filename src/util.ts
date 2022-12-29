@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import {statSync} from 'fs'
+import path, {ParsedPath} from 'path'
 
 export interface Config {
     webdavAddress: string
@@ -8,6 +9,7 @@ export interface Config {
     webdavPassword: string
     webdavUploadPath: string
     files: string[]
+    keepStructure: boolean
     failOnUnmatchedFiles: boolean
 }
 
@@ -23,6 +25,9 @@ export const parseConfig = (): Config => {
             files: core.getMultilineInput('files', {
                 required: true,
                 trimWhitespace: true
+            }),
+            keepStructure: core.getBooleanInput('keep_structure', {
+                required: false
             }),
             failOnUnmatchedFiles: core.getBooleanInput(
                 'fail_on_unmatched_files'
@@ -88,4 +93,15 @@ export const filePaths = async (patterns: string[]): Promise<string[]> => {
         })
     )
     return result
+}
+
+export const searchPaths = async (pattern: string[]): Promise<string[]> => {
+    // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
+    return await glob
+        .create(pattern.join('\n'))
+        .then(async globber => globber.getSearchPaths())
+}
+
+export const pathMeta = (filePath: string, searchPath: string): ParsedPath => {
+    return path.parse(path.relative(searchPath, filePath))
 }

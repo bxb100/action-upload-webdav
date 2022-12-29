@@ -59,6 +59,10 @@ function run() {
         if (files.length === 0) {
             (0, core_1.notice)(`🤔 ${config.files} not include valid file.`);
         }
+        const searchPath = yield (0, util_1.searchPaths)(config.files);
+        if (config.keepStructure && searchPath.length > 1) {
+            throw new Error(`⛔ 'keep_structure' is not supported when multiple paths are specified`);
+        }
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
             username: config.webdavUsername,
             password: config.webdavPassword
@@ -68,7 +72,12 @@ function run() {
             yield client.createDirectory(config.webdavUploadPath, { recursive: true });
         }
         for (const file of files) {
-            const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
+            let uploadPath = path.join(config.webdavUploadPath, path.basename(file));
+            if (config.keepStructure) {
+                const meta = (0, util_1.pathMeta)(file, searchPath[0]);
+                yield client.createDirectory(path.join(config.webdavUploadPath, meta.dir), { recursive: true });
+                uploadPath = path.join(config.webdavUploadPath, meta.dir, meta.base);
+            }
             try {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
@@ -123,11 +132,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
+exports.pathMeta = exports.searchPaths = exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const glob = __importStar(__nccwpck_require__(8090));
 const fs_1 = __nccwpck_require__(7147);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const parseConfig = () => {
     try {
         return {
@@ -140,6 +153,9 @@ const parseConfig = () => {
             files: core.getMultilineInput('files', {
                 required: true,
                 trimWhitespace: true
+            }),
+            keepStructure: core.getBooleanInput('keep_structure', {
+                required: false
             }),
             failOnUnmatchedFiles: core.getBooleanInput('fail_on_unmatched_files')
         };
@@ -196,6 +212,17 @@ const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 exports.filePaths = filePaths;
+const searchPaths = (pattern) => __awaiter(void 0, void 0, void 0, function* () {
+    // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
+    return yield glob
+        .create(pattern.join('\n'))
+        .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.getSearchPaths(); }));
+});
+exports.searchPaths = searchPaths;
+const pathMeta = (filePath, searchPath) => {
+    return path_1.default.parse(path_1.default.relative(searchPath, filePath));
+};
+exports.pathMeta = pathMeta;
 
 
 /***/ }),

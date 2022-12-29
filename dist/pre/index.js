@@ -78,11 +78,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
+exports.pathMeta = exports.searchPaths = exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const glob = __importStar(__nccwpck_require__(8090));
 const fs_1 = __nccwpck_require__(7147);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const parseConfig = () => {
     try {
         return {
@@ -95,6 +99,9 @@ const parseConfig = () => {
             files: core.getMultilineInput('files', {
                 required: true,
                 trimWhitespace: true
+            }),
+            keepStructure: core.getBooleanInput('keep_structure', {
+                required: false
             }),
             failOnUnmatchedFiles: core.getBooleanInput('fail_on_unmatched_files')
         };
@@ -151,6 +158,17 @@ const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 exports.filePaths = filePaths;
+const searchPaths = (pattern) => __awaiter(void 0, void 0, void 0, function* () {
+    // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
+    return yield glob
+        .create(pattern.join('\n'))
+        .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.getSearchPaths(); }));
+});
+exports.searchPaths = searchPaths;
+const pathMeta = (filePath, searchPath) => {
+    return path_1.default.parse(path_1.default.relative(searchPath, filePath));
+};
+exports.pathMeta = pathMeta;
 
 
 /***/ }),
