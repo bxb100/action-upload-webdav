@@ -100,9 +100,7 @@ const parseConfig = () => {
                 required: true,
                 trimWhitespace: true
             }),
-            keepStructure: core.getBooleanInput('keep_structure', {
-                required: false
-            }),
+            keepStructure: core.getBooleanInput('keep_structure'),
             failOnUnmatchedFiles: core.getBooleanInput('fail_on_unmatched_files')
         };
     }
