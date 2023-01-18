@@ -17,7 +17,7 @@ describe('test webDav functionality', () => {
                 webdavUsername: 'alice',
                 webdavPassword: 'secret1234',
                 webdavUploadPath: '/',
-                files: ['./test/dist/*'],
+                files: ['./test/nuxt/*'],
                 keepStructure: true,
                 failOnUnmatchedFiles: false
             }
