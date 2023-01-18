@@ -109,12 +109,12 @@ const parseConfig = () => {
     }
 };
 exports.parseConfig = parseConfig;
-function checkStat(path) {
+function checkStat(filePath) {
     // exclude .DS_Store
-    if (path.endsWith('.DS_Store')) {
+    if (filePath.endsWith('.DS_Store')) {
         return false;
     }
-    return (0, fs_1.statSync)(path).isFile();
+    return (0, fs_1.statSync)(filePath).isFile();
 }
 const patterSplit = (patterns) => {
     const includes = [];

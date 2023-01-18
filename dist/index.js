@@ -39,6 +39,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
 const path = __importStar(__nccwpck_require__(1017));
 const util_1 = __nccwpck_require__(4024);
 const core_1 = __nccwpck_require__(2186);
@@ -54,27 +55,31 @@ function run() {
         if (patterns.length > 0 && config.failOnUnmatchedFiles) {
             throw new Error(`⛔ There were unmatched files`);
         }
+        // if (config.webdavUploadPath === '/') {
+        //     throw new Error(`⛔ 'webdav_upload_path' cannot be '/'`)
+        // }
         (0, core_1.info)(`Current directory: ${process.cwd()}`);
         const files = yield (0, util_1.filePaths)(config.files);
         if (files.length === 0) {
             (0, core_1.notice)(`🤔 ${config.files} not include valid file.`);
         }
-        const searchPath = yield (0, util_1.searchPaths)(config.files);
-        if (config.keepStructure && searchPath.length > 1) {
+        const multiSearchPaths = yield (0, util_1.searchPaths)(config.files);
+        if (config.keepStructure && multiSearchPaths.length > 1) {
             throw new Error(`⛔ 'keep_structure' is not supported when multiple paths are specified`);
         }
+        const searchPath = multiSearchPaths[0];
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
             username: config.webdavUsername,
             password: config.webdavPassword
         });
-        // first be sure there are have a directory
-        if (!(yield client.exists(config.webdavUploadPath))) {
+        // noinspection PointlessBooleanExpressionJS
+        if ((yield client.exists(config.webdavUploadPath)) === false) {
             yield client.createDirectory(config.webdavUploadPath, { recursive: true });
         }
         for (const file of files) {
             let uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             if (config.keepStructure) {
-                const meta = (0, util_1.pathMeta)(file, searchPath[0]);
+                const meta = (0, util_1.pathMeta)(file, searchPath);
                 yield client.createDirectory(path.join(config.webdavUploadPath, meta.dir), { recursive: true });
                 uploadPath = path.join(config.webdavUploadPath, meta.dir, meta.base);
             }
@@ -90,6 +95,7 @@ function run() {
         }
     });
 }
+exports.run = run;
 run().catch(err => (0, core_1.setFailed)(err.message));
 
 
@@ -163,12 +169,12 @@ const parseConfig = () => {
     }
 };
 exports.parseConfig = parseConfig;
-function checkStat(path) {
+function checkStat(filePath) {
     // exclude .DS_Store
-    if (path.endsWith('.DS_Store')) {
+    if (filePath.endsWith('.DS_Store')) {
         return false;
     }
-    return (0, fs_1.statSync)(path).isFile();
+    return (0, fs_1.statSync)(filePath).isFile();
 }
 const patterSplit = (patterns) => {
     const includes = [];

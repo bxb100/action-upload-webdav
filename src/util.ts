@@ -36,12 +36,12 @@ export const parseConfig = (): Config => {
     }
 }
 
-function checkStat(path: string): boolean {
+function checkStat(filePath: string): boolean {
     // exclude .DS_Store
-    if (path.endsWith('.DS_Store')) {
+    if (filePath.endsWith('.DS_Store')) {
         return false
     }
-    return statSync(path).isFile()
+    return statSync(filePath).isFile()
 }
 
 const patterSplit = (
