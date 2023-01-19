@@ -85,15 +85,27 @@ function run() {
             try {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
-                successUpload.push(`🎉 Uploaded ${uploadPath}`);
+                successUpload.push(`\`${uploadPath}\``);
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
-                failedUpload.push(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
+                failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`]);
             }
         }
         if (successUpload.length > 0 || failedUpload.length > 0) {
-            yield core_1.summary.addList(successUpload).addList(failedUpload).write();
+            yield core_1.summary
+                .addRaw('##:rocket: Success')
+                .addList(successUpload)
+                .addRaw('##:no_entry: Failed')
+                .addTable([
+                [
+                    { data: 'File', header: true },
+                    { data: 'Upload', header: true },
+                    { data: 'Error', header: true }
+                ],
+                ...failedUpload
+            ])
+                .write();
         }
     });
 }

@@ -11,6 +11,7 @@ import {info, notice, setFailed, summary} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
 import {WebDAVClient} from 'webdav/dist/node/types'
+import {SummaryTableRow} from '@actions/core/lib/summary'
 
 export async function run(): Promise<void> {
     const config = parseConfig()
@@ -46,8 +47,8 @@ export async function run(): Promise<void> {
     }
 
     const persistPath = new Set<string>()
-    const successUpload = []
-    const failedUpload = []
+    const successUpload: string[] = []
+    const failedUpload: string[][] = []
     for (const file of files) {
         let uploadPath = path.join(config.webdavUploadPath, path.basename(file))
         if (config.keepStructure) {
@@ -63,16 +64,26 @@ export async function run(): Promise<void> {
         try {
             info(`📦 Uploading ${file} to ${uploadPath}`)
             createReadStream(file).pipe(client.createWriteStream(uploadPath))
-            successUpload.push(`🎉 Uploaded ${uploadPath}`)
+            successUpload.push(`\`${uploadPath}\``)
         } catch (error) {
             info(`error: ${error}`)
-            failedUpload.push(
-                `⛔ Failed to upload file '${file}' to '${uploadPath}'`
-            )
+            failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`])
         }
     }
     if (successUpload.length > 0 || failedUpload.length > 0) {
-        await summary.addList(successUpload).addList(failedUpload).write()
+        await summary
+            .addRaw('##:rocket: Success')
+            .addList(successUpload)
+            .addRaw('##:no_entry: Failed')
+            .addTable([
+                [
+                    {data: 'File', header: true},
+                    {data: 'Upload', header: true},
+                    {data: 'Error', header: true}
+                ],
+                ...failedUpload
+            ])
+            .write()
     }
 }
 
