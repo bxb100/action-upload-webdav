@@ -11,7 +11,6 @@ import {info, notice, setFailed, summary} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
 import {WebDAVClient} from 'webdav/dist/node/types'
-import {SummaryTableRow} from '@actions/core/lib/summary'
 
 export async function run(): Promise<void> {
     const config = parseConfig()
