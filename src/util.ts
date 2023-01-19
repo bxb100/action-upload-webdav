@@ -93,6 +93,25 @@ export const filePaths = async (patterns: string[]): Promise<string[]> => {
     return result
 }
 
+export function getAllDirectories(directory: string): string[] {
+    if (!directory || directory === '/') return []
+    let currentPath = directory
+    const output: string[] = []
+    do {
+        output.push(currentPath)
+        currentPath = path.dirname(currentPath)
+    } while (currentPath && currentPath !== '/')
+    output.sort((a, b) => {
+        if (a.length > b.length) {
+            return 1
+        } else if (b.length > a.length) {
+            return -1
+        }
+        return 0
+    })
+    return output
+}
+
 export const searchPaths = async (pattern: string[]): Promise<string[]> => {
     // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
     return await glob

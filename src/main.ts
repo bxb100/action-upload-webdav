@@ -1,6 +1,7 @@
 import * as path from 'path'
 import {
     filePaths,
+    getAllDirectories,
     parseConfig,
     pathMeta,
     searchPaths,
@@ -9,6 +10,7 @@ import {
 import {info, notice, setFailed} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
+import {WebDAVClient} from 'webdav/dist/node/types'
 
 export async function run(): Promise<void> {
     const config = parseConfig()
@@ -20,9 +22,6 @@ export async function run(): Promise<void> {
     if (patterns.length > 0 && config.failOnUnmatchedFiles) {
         throw new Error(`⛔ There were unmatched files`)
     }
-    // if (config.webdavUploadPath === '/') {
-    //     throw new Error(`⛔ 'webdav_upload_path' cannot be '/'`)
-    // }
 
     info(`Current directory: ${process.cwd()}`)
     const files = await filePaths(config.files)
@@ -42,17 +41,19 @@ export async function run(): Promise<void> {
         password: config.webdavPassword
     })
 
-    // noinspection PointlessBooleanExpressionJS
-    if ((await client.exists(config.webdavUploadPath)) === false) {
+    if (!(await client.exists(path.join(config.webdavUploadPath, '/')))) {
         await client.createDirectory(config.webdavUploadPath, {recursive: true})
     }
+
+    const persistPath = new Set<string>()
     for (const file of files) {
         let uploadPath = path.join(config.webdavUploadPath, path.basename(file))
         if (config.keepStructure) {
             const meta = pathMeta(file, searchPath)
-            await client.createDirectory(
+            await createWebDavDirectory(
+                client,
                 path.join(config.webdavUploadPath, meta.dir),
-                {recursive: true}
+                persistPath
             )
             uploadPath = path.join(config.webdavUploadPath, meta.dir, meta.base)
         }
@@ -65,6 +66,28 @@ export async function run(): Promise<void> {
             info(`error: ${error}`)
             notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
         }
+    }
+}
+
+/**
+ * fix path not end with '/' will cause 301 but axios not redirect
+ *
+ * http://www.webdav.org/specs/rfc4918.html#rfc.section.5.2
+ * https://github.com/perry-mitchell/webdav-client/blob/e8e61fd7ce743278ba7486e5eee8f6d8f72d6f34/source/operations/createDirectory.ts#L31
+ */
+async function createWebDavDirectory(
+    client: WebDAVClient,
+    pathStr: string,
+    set: Set<string>
+): Promise<void> {
+    const paths = getAllDirectories(pathStr)
+    for (const p of paths) {
+        if (set.has(p)) continue
+        const temp = path.join(p, '/')
+        if (!(await client.exists(temp))) {
+            await client.createDirectory(temp)
+        }
+        set.add(p)
     }
 }
 

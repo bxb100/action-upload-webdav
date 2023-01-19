@@ -82,7 +82,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pathMeta = exports.searchPaths = exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
+exports.pathMeta = exports.searchPaths = exports.getAllDirectories = exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const glob = __importStar(__nccwpck_require__(8090));
 const fs_1 = __nccwpck_require__(7147);
@@ -156,6 +156,27 @@ const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 exports.filePaths = filePaths;
+function getAllDirectories(directory) {
+    if (!directory || directory === '/')
+        return [];
+    let currentPath = directory;
+    const output = [];
+    do {
+        output.push(currentPath);
+        currentPath = path_1.default.dirname(currentPath);
+    } while (currentPath && currentPath !== '/');
+    output.sort((a, b) => {
+        if (a.length > b.length) {
+            return 1;
+        }
+        else if (b.length > a.length) {
+            return -1;
+        }
+        return 0;
+    });
+    return output;
+}
+exports.getAllDirectories = getAllDirectories;
 const searchPaths = (pattern) => __awaiter(void 0, void 0, void 0, function* () {
     // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
     return yield glob
