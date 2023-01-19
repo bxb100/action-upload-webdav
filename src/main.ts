@@ -46,8 +46,8 @@ export async function run(): Promise<void> {
     }
 
     const persistPath = new Set<string>()
-    let successUpload = []
-    let failedUpload = []
+    const successUpload = []
+    const failedUpload = []
     for (const file of files) {
         let uploadPath = path.join(config.webdavUploadPath, path.basename(file))
         if (config.keepStructure) {
@@ -70,13 +70,9 @@ export async function run(): Promise<void> {
                 `⛔ Failed to upload file '${file}' to '${uploadPath}'`
             )
         }
-        if (successUpload.length > 0 || failedUpload.length > 0) {
-            await summary
-                .addHeading('Upload Summary')
-                .addList(successUpload)
-                .addList(failedUpload)
-                .write()
-        }
+    }
+    if (successUpload.length > 0 || failedUpload.length > 0) {
+        await summary.addList(successUpload).addList(failedUpload).write()
     }
 }
 
