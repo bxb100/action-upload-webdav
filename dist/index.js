@@ -92,20 +92,22 @@ function run() {
                 failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`]);
             }
         }
-        if (successUpload.length > 0 || failedUpload.length > 0) {
-            yield core_1.summary
-                .addRaw('##:rocket: Success')
-                .addList(successUpload)
-                .addRaw('##:no_entry: Failed')
-                .addTable([
+        const s = core_1.summary.emptyBuffer();
+        if (successUpload.length > 0) {
+            s.addRaw('## :rocket: Success').addList(successUpload);
+        }
+        if (failedUpload.length > 0) {
+            s.addRaw('## :no_entry: Failed').addTable([
                 [
                     { data: 'File', header: true },
                     { data: 'Upload', header: true },
                     { data: 'Error', header: true }
                 ],
                 ...failedUpload
-            ])
-                .write();
+            ]);
+        }
+        if (!s.isEmptyBuffer()) {
+            yield s.write();
         }
     });
 }
