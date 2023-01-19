@@ -73,6 +73,8 @@ function run() {
             yield client.createDirectory(config.webdavUploadPath, { recursive: true });
         }
         const persistPath = new Set();
+        let successUpload = [];
+        let failedUpload = [];
         for (const file of files) {
             let uploadPath = path.join(config.webdavUploadPath, path.basename(file));
             if (config.keepStructure) {
@@ -83,14 +85,19 @@ function run() {
             try {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
-                core_1.summary.addRaw(`* 🎉 Uploaded ${uploadPath}`);
+                successUpload.push(`🎉 Uploaded ${uploadPath}`);
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
-                core_1.summary.addRaw(`* ⛔ Failed to upload file '${file}' to '${uploadPath}'`);
+                failedUpload.push(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
             }
-            if (!core_1.summary.isEmptyBuffer())
-                core_1.summary.addEOL();
+            if (successUpload.length > 0 || failedUpload.length > 0) {
+                yield core_1.summary
+                    .addHeading('Upload Summary')
+                    .addList(successUpload)
+                    .addList(failedUpload)
+                    .write();
+            }
         }
     });
 }

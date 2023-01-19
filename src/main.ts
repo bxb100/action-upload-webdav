@@ -46,6 +46,8 @@ export async function run(): Promise<void> {
     }
 
     const persistPath = new Set<string>()
+    let successUpload = []
+    let failedUpload = []
     for (const file of files) {
         let uploadPath = path.join(config.webdavUploadPath, path.basename(file))
         if (config.keepStructure) {
@@ -61,14 +63,20 @@ export async function run(): Promise<void> {
         try {
             info(`📦 Uploading ${file} to ${uploadPath}`)
             createReadStream(file).pipe(client.createWriteStream(uploadPath))
-            summary.addRaw(`* 🎉 Uploaded ${uploadPath}`)
+            successUpload.push(`🎉 Uploaded ${uploadPath}`)
         } catch (error) {
             info(`error: ${error}`)
-            summary.addRaw(
-                `* ⛔ Failed to upload file '${file}' to '${uploadPath}'`
+            failedUpload.push(
+                `⛔ Failed to upload file '${file}' to '${uploadPath}'`
             )
         }
-        if (!summary.isEmptyBuffer()) summary.addEOL()
+        if (successUpload.length > 0 || failedUpload.length > 0) {
+            await summary
+                .addHeading('Upload Summary')
+                .addList(successUpload)
+                .addList(failedUpload)
+                .write()
+        }
     }
 }
 
