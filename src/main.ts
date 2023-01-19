@@ -77,15 +77,15 @@ async function summaryOutput(
     successUpload: string[],
     failedUpload: string[][]
 ): Promise<void> {
-    const s = summary.addHeading('📦 Upload Summary')
+    const s = summary.addHeading('Upload Summary').addRaw('\n\n')
     if (successUpload.length > 0) {
         s.addRaw('## :rocket: Success Upload')
-            .addBreak()
-            .addDetails('Details', successUpload.join('\n'))
+            .addRaw('\n\n')
+            .addDetails('Details', `\n\n${successUpload.join('\n')}\n\n`)
     }
     if (failedUpload.length > 0) {
         s.addRaw('## :no_entry: Failed Upload')
-            .addBreak()
+            .addRaw('\n\n')
             .addTable([
                 [
                     {data: 'File', header: true},

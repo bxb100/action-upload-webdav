@@ -98,15 +98,15 @@ function run() {
 exports.run = run;
 function summaryOutput(successUpload, failedUpload) {
     return __awaiter(this, void 0, void 0, function* () {
-        const s = core_1.summary.addHeading('📦 Upload Summary');
+        const s = core_1.summary.addHeading('Upload Summary').addRaw('\n\n');
         if (successUpload.length > 0) {
             s.addRaw('## :rocket: Success Upload')
-                .addBreak()
-                .addDetails('Details', successUpload.join('\n'));
+                .addRaw('\n\n')
+                .addDetails('Details', `\n\n${successUpload.join('\n')}\n\n`);
         }
         if (failedUpload.length > 0) {
             s.addRaw('## :no_entry: Failed Upload')
-                .addBreak()
+                .addRaw('\n\n')
                 .addTable([
                 [
                     { data: 'File', header: true },
