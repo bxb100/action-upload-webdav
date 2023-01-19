@@ -72,19 +72,26 @@ export async function run(): Promise<void> {
     }
     const s = summary.emptyBuffer()
     if (successUpload.length > 0) {
-        s.addRaw('## :rocket: Success').addBreak().addList(successUpload)
+        s.addRaw('## :rocket: Success Upload')
+            .addBreak()
+            .addDetails('Details', summary.addList(successUpload).stringify())
     }
     if (failedUpload.length > 0) {
-        s.addRaw('## :no_entry: Failed')
+        s.addRaw('## :no_entry: Failed Upload')
             .addBreak()
-            .addTable([
-                [
-                    {data: 'File', header: true},
-                    {data: 'Upload', header: true},
-                    {data: 'Error', header: true}
-                ],
-                ...failedUpload
-            ])
+            .addDetails(
+                'Details',
+                summary
+                    .addTable([
+                        [
+                            {data: 'File', header: true},
+                            {data: 'Upload', header: true},
+                            {data: 'Error', header: true}
+                        ],
+                        ...failedUpload
+                    ])
+                    .stringify()
+            )
     }
     if (!s.isEmptyBuffer()) {
         await s.write()

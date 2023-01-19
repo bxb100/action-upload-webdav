@@ -94,11 +94,14 @@ function run() {
         }
         const s = core_1.summary.emptyBuffer();
         if (successUpload.length > 0) {
-            s.addRaw('## :rocket: Success').addBreak().addList(successUpload);
+            s.addRaw('## :rocket: Success Upload')
+                .addBreak()
+                .addDetails('Details', core_1.summary.addList(successUpload).stringify());
         }
         if (failedUpload.length > 0) {
-            s.addRaw('## :no_entry: Failed')
+            s.addRaw('## :no_entry: Failed Upload')
                 .addBreak()
+                .addDetails('Details', core_1.summary
                 .addTable([
                 [
                     { data: 'File', header: true },
@@ -106,7 +109,8 @@ function run() {
                     { data: 'Error', header: true }
                 ],
                 ...failedUpload
-            ]);
+            ])
+                .stringify());
         }
         if (!s.isEmptyBuffer()) {
             yield s.write();
