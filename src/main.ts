@@ -68,6 +68,7 @@ export async function run(): Promise<void> {
                 `* ⛔ Failed to upload file '${file}' to '${uploadPath}'`
             )
         }
+        if (!summary.isEmptyBuffer()) summary.addEOL()
     }
 }
 

@@ -89,6 +89,8 @@ function run() {
                 (0, core_1.info)(`error: ${error}`);
                 core_1.summary.addRaw(`* ⛔ Failed to upload file '${file}' to '${uploadPath}'`);
             }
+            if (!core_1.summary.isEmptyBuffer())
+                core_1.summary.addEOL();
         }
     });
 }
