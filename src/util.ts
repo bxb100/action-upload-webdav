@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import {statSync} from 'fs'
+import path, {ParsedPath} from 'path'
 
 export interface Config {
     webdavAddress: string
@@ -8,6 +9,7 @@ export interface Config {
     webdavPassword: string
     webdavUploadPath: string
     files: string[]
+    keepStructure: boolean
     failOnUnmatchedFiles: boolean
 }
 
@@ -24,6 +26,7 @@ export const parseConfig = (): Config => {
                 required: true,
                 trimWhitespace: true
             }),
+            keepStructure: core.getBooleanInput('keep_structure'),
             failOnUnmatchedFiles: core.getBooleanInput(
                 'fail_on_unmatched_files'
             )
@@ -33,12 +36,12 @@ export const parseConfig = (): Config => {
     }
 }
 
-function checkStat(path: string): boolean {
+function checkStat(filePath: string): boolean {
     // exclude .DS_Store
-    if (path.endsWith('.DS_Store')) {
+    if (filePath.endsWith('.DS_Store')) {
         return false
     }
-    return statSync(path).isFile()
+    return statSync(filePath).isFile()
 }
 
 const patterSplit = (
@@ -88,4 +91,34 @@ export const filePaths = async (patterns: string[]): Promise<string[]> => {
         })
     )
     return result
+}
+
+export function getAllDirectories(directory: string): string[] {
+    if (!directory || directory === '/') return []
+    let currentPath = directory
+    const output: string[] = []
+    do {
+        output.push(currentPath)
+        currentPath = path.dirname(currentPath)
+    } while (currentPath && currentPath !== '/')
+    output.sort((a, b) => {
+        if (a.length > b.length) {
+            return 1
+        } else if (b.length > a.length) {
+            return -1
+        }
+        return 0
+    })
+    return output
+}
+
+export const searchPaths = async (pattern: string[]): Promise<string[]> => {
+    // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
+    return await glob
+        .create(pattern.join('\n'))
+        .then(async globber => globber.getSearchPaths())
+}
+
+export const pathMeta = (filePath: string, searchPath: string): ParsedPath => {
+    return path.parse(path.relative(searchPath, filePath))
 }

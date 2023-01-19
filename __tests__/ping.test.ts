@@ -1,4 +1,3 @@
-import * as assert from 'assert'
 import {ping} from '../src/ping'
 import * as util from '../src/util'
 
@@ -15,6 +14,7 @@ describe('WebDAV link test', () => {
                 webdavPassword: 'mushily&flop&fit7',
                 webdavUploadPath: '',
                 files: [''],
+                keepStructure: false,
                 failOnUnmatchedFiles: false
             }
         })
@@ -31,6 +31,7 @@ describe('WebDAV link test', () => {
                 webdavPassword: 'test12345',
                 webdavUploadPath: '',
                 files: [''],
+                keepStructure: false,
                 failOnUnmatchedFiles: false
             }
         })

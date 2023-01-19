@@ -1,10 +1,18 @@
 import * as path from 'path'
-import {filePaths, parseConfig, unmatchedPatterns} from './util'
-import {info, notice, setFailed} from '@actions/core'
+import {
+    filePaths,
+    getAllDirectories,
+    parseConfig,
+    pathMeta,
+    searchPaths,
+    unmatchedPatterns
+} from './util'
+import {info, notice, setFailed, summary} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
+import {WebDAVClient} from 'webdav/dist/node/types'
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
     const config = parseConfig()
 
     const patterns = await unmatchedPatterns(config.files)
@@ -20,29 +28,94 @@ async function run(): Promise<void> {
     if (files.length === 0) {
         notice(`🤔 ${config.files} not include valid file.`)
     }
+    const multiSearchPaths = await searchPaths(config.files)
+    if (config.keepStructure && multiSearchPaths.length > 1) {
+        throw new Error(
+            `⛔ 'keep_structure' is not supported when multiple paths are specified`
+        )
+    }
+    const searchPath = multiSearchPaths[0]
 
     const client = createClient(config.webdavAddress, {
         username: config.webdavUsername,
         password: config.webdavPassword
     })
 
-    // first be sure there are have a directory
-    if (!(await client.exists(config.webdavUploadPath))) {
+    if (!(await client.exists(path.join(config.webdavUploadPath, '/')))) {
         await client.createDirectory(config.webdavUploadPath, {recursive: true})
     }
+
+    const persistPath = new Set<string>()
+    const successUpload: string[] = []
+    const failedUpload: string[][] = []
     for (const file of files) {
-        const uploadPath = path.join(
-            config.webdavUploadPath,
-            path.basename(file)
-        )
+        let uploadPath = path.join(config.webdavUploadPath, path.basename(file))
+        if (config.keepStructure) {
+            const meta = pathMeta(file, searchPath)
+            await createWebDavDirectory(
+                client,
+                path.join(config.webdavUploadPath, meta.dir),
+                persistPath
+            )
+            uploadPath = path.join(config.webdavUploadPath, meta.dir, meta.base)
+        }
+
         try {
             info(`📦 Uploading ${file} to ${uploadPath}`)
             createReadStream(file).pipe(client.createWriteStream(uploadPath))
-            notice(`🎉 Uploaded ${uploadPath}`)
+            successUpload.push(`* \`${uploadPath}\``)
         } catch (error) {
             info(`error: ${error}`)
-            notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
+            failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`])
         }
+    }
+    await summaryOutput(successUpload, failedUpload)
+}
+
+async function summaryOutput(
+    successUpload: string[],
+    failedUpload: string[][]
+): Promise<void> {
+    const s = summary.addHeading('Upload Summary').addRaw('\n\n')
+    if (successUpload.length > 0) {
+        s.addRaw('## :rocket: Success Upload')
+            .addRaw('\n\n')
+            .addDetails('Details', `\n\n${successUpload.join('\n')}\n\n`)
+    }
+    if (failedUpload.length > 0) {
+        s.addRaw('## :no_entry: Failed Upload')
+            .addRaw('\n\n')
+            .addTable([
+                [
+                    {data: 'File', header: true},
+                    {data: 'Upload', header: true},
+                    {data: 'Error', header: true}
+                ],
+                ...failedUpload
+            ])
+    }
+    await s.write()
+}
+
+/**
+ * fix path not end with '/' will cause 301 but axios not redirect
+ *
+ * http://www.webdav.org/specs/rfc4918.html#rfc.section.5.2
+ * https://github.com/perry-mitchell/webdav-client/blob/e8e61fd7ce743278ba7486e5eee8f6d8f72d6f34/source/operations/createDirectory.ts#L31
+ */
+async function createWebDavDirectory(
+    client: WebDAVClient,
+    pathStr: string,
+    set: Set<string>
+): Promise<void> {
+    const paths = getAllDirectories(pathStr)
+    for (const p of paths) {
+        if (set.has(p)) continue
+        const temp = path.join(p, '/')
+        if (!(await client.exists(temp))) {
+            await client.createDirectory(temp)
+        }
+        set.add(p)
     }
 }
 

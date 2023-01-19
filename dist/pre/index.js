@@ -78,11 +78,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
+exports.pathMeta = exports.searchPaths = exports.getAllDirectories = exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const glob = __importStar(__nccwpck_require__(8090));
 const fs_1 = __nccwpck_require__(7147);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const parseConfig = () => {
     try {
         return {
@@ -96,6 +100,7 @@ const parseConfig = () => {
                 required: true,
                 trimWhitespace: true
             }),
+            keepStructure: core.getBooleanInput('keep_structure'),
             failOnUnmatchedFiles: core.getBooleanInput('fail_on_unmatched_files')
         };
     }
@@ -104,12 +109,12 @@ const parseConfig = () => {
     }
 };
 exports.parseConfig = parseConfig;
-function checkStat(path) {
+function checkStat(filePath) {
     // exclude .DS_Store
-    if (path.endsWith('.DS_Store')) {
+    if (filePath.endsWith('.DS_Store')) {
         return false;
     }
-    return (0, fs_1.statSync)(path).isFile();
+    return (0, fs_1.statSync)(filePath).isFile();
 }
 const patterSplit = (patterns) => {
     const includes = [];
@@ -151,6 +156,38 @@ const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 exports.filePaths = filePaths;
+function getAllDirectories(directory) {
+    if (!directory || directory === '/')
+        return [];
+    let currentPath = directory;
+    const output = [];
+    do {
+        output.push(currentPath);
+        currentPath = path_1.default.dirname(currentPath);
+    } while (currentPath && currentPath !== '/');
+    output.sort((a, b) => {
+        if (a.length > b.length) {
+            return 1;
+        }
+        else if (b.length > a.length) {
+            return -1;
+        }
+        return 0;
+    });
+    return output;
+}
+exports.getAllDirectories = getAllDirectories;
+const searchPaths = (pattern) => __awaiter(void 0, void 0, void 0, function* () {
+    // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
+    return yield glob
+        .create(pattern.join('\n'))
+        .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.getSearchPaths(); }));
+});
+exports.searchPaths = searchPaths;
+const pathMeta = (filePath, searchPath) => {
+    return path_1.default.parse(path_1.default.relative(searchPath, filePath));
+};
+exports.pathMeta = pathMeta;
 
 
 /***/ }),

@@ -39,6 +39,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
 const path = __importStar(__nccwpck_require__(1017));
 const util_1 = __nccwpck_require__(4024);
 const core_1 = __nccwpck_require__(2186);
@@ -59,25 +60,82 @@ function run() {
         if (files.length === 0) {
             (0, core_1.notice)(`🤔 ${config.files} not include valid file.`);
         }
+        const multiSearchPaths = yield (0, util_1.searchPaths)(config.files);
+        if (config.keepStructure && multiSearchPaths.length > 1) {
+            throw new Error(`⛔ 'keep_structure' is not supported when multiple paths are specified`);
+        }
+        const searchPath = multiSearchPaths[0];
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
             username: config.webdavUsername,
             password: config.webdavPassword
         });
-        // first be sure there are have a directory
-        if (!(yield client.exists(config.webdavUploadPath))) {
+        if (!(yield client.exists(path.join(config.webdavUploadPath, '/')))) {
             yield client.createDirectory(config.webdavUploadPath, { recursive: true });
         }
+        const persistPath = new Set();
+        const successUpload = [];
+        const failedUpload = [];
         for (const file of files) {
-            const uploadPath = path.join(config.webdavUploadPath, path.basename(file));
+            let uploadPath = path.join(config.webdavUploadPath, path.basename(file));
+            if (config.keepStructure) {
+                const meta = (0, util_1.pathMeta)(file, searchPath);
+                yield createWebDavDirectory(client, path.join(config.webdavUploadPath, meta.dir), persistPath);
+                uploadPath = path.join(config.webdavUploadPath, meta.dir, meta.base);
+            }
             try {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
-                (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
+                successUpload.push(`* \`${uploadPath}\``);
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
-                (0, core_1.notice)(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
+                failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`]);
             }
+        }
+        yield summaryOutput(successUpload, failedUpload);
+    });
+}
+exports.run = run;
+function summaryOutput(successUpload, failedUpload) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const s = core_1.summary.addHeading('Upload Summary').addRaw('\n\n');
+        if (successUpload.length > 0) {
+            s.addRaw('## :rocket: Success Upload')
+                .addRaw('\n\n')
+                .addDetails('Details', `\n\n${successUpload.join('\n')}\n\n`);
+        }
+        if (failedUpload.length > 0) {
+            s.addRaw('## :no_entry: Failed Upload')
+                .addRaw('\n\n')
+                .addTable([
+                [
+                    { data: 'File', header: true },
+                    { data: 'Upload', header: true },
+                    { data: 'Error', header: true }
+                ],
+                ...failedUpload
+            ]);
+        }
+        yield s.write();
+    });
+}
+/**
+ * fix path not end with '/' will cause 301 but axios not redirect
+ *
+ * http://www.webdav.org/specs/rfc4918.html#rfc.section.5.2
+ * https://github.com/perry-mitchell/webdav-client/blob/e8e61fd7ce743278ba7486e5eee8f6d8f72d6f34/source/operations/createDirectory.ts#L31
+ */
+function createWebDavDirectory(client, pathStr, set) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const paths = (0, util_1.getAllDirectories)(pathStr);
+        for (const p of paths) {
+            if (set.has(p))
+                continue;
+            const temp = path.join(p, '/');
+            if (!(yield client.exists(temp))) {
+                yield client.createDirectory(temp);
+            }
+            set.add(p);
         }
     });
 }
@@ -123,11 +181,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
+exports.pathMeta = exports.searchPaths = exports.getAllDirectories = exports.filePaths = exports.unmatchedPatterns = exports.parseConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const glob = __importStar(__nccwpck_require__(8090));
 const fs_1 = __nccwpck_require__(7147);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const parseConfig = () => {
     try {
         return {
@@ -141,6 +203,7 @@ const parseConfig = () => {
                 required: true,
                 trimWhitespace: true
             }),
+            keepStructure: core.getBooleanInput('keep_structure'),
             failOnUnmatchedFiles: core.getBooleanInput('fail_on_unmatched_files')
         };
     }
@@ -149,12 +212,12 @@ const parseConfig = () => {
     }
 };
 exports.parseConfig = parseConfig;
-function checkStat(path) {
+function checkStat(filePath) {
     // exclude .DS_Store
-    if (path.endsWith('.DS_Store')) {
+    if (filePath.endsWith('.DS_Store')) {
         return false;
     }
-    return (0, fs_1.statSync)(path).isFile();
+    return (0, fs_1.statSync)(filePath).isFile();
 }
 const patterSplit = (patterns) => {
     const includes = [];
@@ -196,6 +259,38 @@ const filePaths = (patterns) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 exports.filePaths = filePaths;
+function getAllDirectories(directory) {
+    if (!directory || directory === '/')
+        return [];
+    let currentPath = directory;
+    const output = [];
+    do {
+        output.push(currentPath);
+        currentPath = path_1.default.dirname(currentPath);
+    } while (currentPath && currentPath !== '/');
+    output.sort((a, b) => {
+        if (a.length > b.length) {
+            return 1;
+        }
+        else if (b.length > a.length) {
+            return -1;
+        }
+        return 0;
+    });
+    return output;
+}
+exports.getAllDirectories = getAllDirectories;
+const searchPaths = (pattern) => __awaiter(void 0, void 0, void 0, function* () {
+    // see https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27
+    return yield glob
+        .create(pattern.join('\n'))
+        .then((globber) => __awaiter(void 0, void 0, void 0, function* () { return globber.getSearchPaths(); }));
+});
+exports.searchPaths = searchPaths;
+const pathMeta = (filePath, searchPath) => {
+    return path_1.default.parse(path_1.default.relative(searchPath, filePath));
+};
+exports.pathMeta = pathMeta;
 
 
 /***/ }),
