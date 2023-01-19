@@ -94,10 +94,12 @@ function run() {
         }
         const s = core_1.summary.emptyBuffer();
         if (successUpload.length > 0) {
-            s.addRaw('## :rocket: Success').addList(successUpload);
+            s.addRaw('## :rocket: Success').addBreak().addList(successUpload);
         }
         if (failedUpload.length > 0) {
-            s.addRaw('## :no_entry: Failed').addTable([
+            s.addRaw('## :no_entry: Failed')
+                .addBreak()
+                .addTable([
                 [
                     { data: 'File', header: true },
                     { data: 'Upload', header: true },
