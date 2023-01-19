@@ -83,11 +83,11 @@ function run() {
             try {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
-                (0, core_1.notice)(`🎉 Uploaded ${uploadPath}`);
+                core_1.summary.addRaw(`* 🎉 Uploaded ${uploadPath}`);
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
-                (0, core_1.notice)(`⛔ Failed to upload file '${file}' to '${uploadPath}'`);
+                core_1.summary.addRaw(`* ⛔ Failed to upload file '${file}' to '${uploadPath}'`);
             }
         }
     });

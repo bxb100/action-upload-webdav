@@ -7,7 +7,7 @@ import {
     searchPaths,
     unmatchedPatterns
 } from './util'
-import {info, notice, setFailed} from '@actions/core'
+import {info, notice, setFailed, summary} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
 import {WebDAVClient} from 'webdav/dist/node/types'
@@ -61,10 +61,12 @@ export async function run(): Promise<void> {
         try {
             info(`📦 Uploading ${file} to ${uploadPath}`)
             createReadStream(file).pipe(client.createWriteStream(uploadPath))
-            notice(`🎉 Uploaded ${uploadPath}`)
+            summary.addRaw(`* 🎉 Uploaded ${uploadPath}`)
         } catch (error) {
             info(`error: ${error}`)
-            notice(`⛔ Failed to upload file '${file}' to '${uploadPath}'`)
+            summary.addRaw(
+                `* ⛔ Failed to upload file '${file}' to '${uploadPath}'`
+            )
         }
     }
 }
