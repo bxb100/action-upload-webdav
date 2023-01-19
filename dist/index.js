@@ -85,23 +85,28 @@ function run() {
             try {
                 (0, core_1.info)(`📦 Uploading ${file} to ${uploadPath}`);
                 (0, fs_1.createReadStream)(file).pipe(client.createWriteStream(uploadPath));
-                successUpload.push(`\`${uploadPath}\``);
+                successUpload.push(`* \`${uploadPath}\``);
             }
             catch (error) {
                 (0, core_1.info)(`error: ${error}`);
                 failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`]);
             }
         }
-        const s = core_1.summary.emptyBuffer();
+        yield summaryOutput(successUpload, failedUpload);
+    });
+}
+exports.run = run;
+function summaryOutput(successUpload, failedUpload) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const s = core_1.summary.addHeading('📦 Upload Summary');
         if (successUpload.length > 0) {
             s.addRaw('## :rocket: Success Upload')
                 .addBreak()
-                .addDetails('Details', core_1.summary.addList(successUpload).stringify());
+                .addDetails('Details', successUpload.join('\n'));
         }
         if (failedUpload.length > 0) {
             s.addRaw('## :no_entry: Failed Upload')
                 .addBreak()
-                .addDetails('Details', core_1.summary
                 .addTable([
                 [
                     { data: 'File', header: true },
@@ -109,15 +114,11 @@ function run() {
                     { data: 'Error', header: true }
                 ],
                 ...failedUpload
-            ])
-                .stringify());
+            ]);
         }
-        if (!s.isEmptyBuffer()) {
-            yield s.write();
-        }
+        yield s.write();
     });
 }
-exports.run = run;
 /**
  * fix path not end with '/' will cause 301 but axios not redirect
  *

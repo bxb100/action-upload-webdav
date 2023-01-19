@@ -64,38 +64,38 @@ export async function run(): Promise<void> {
         try {
             info(`📦 Uploading ${file} to ${uploadPath}`)
             createReadStream(file).pipe(client.createWriteStream(uploadPath))
-            successUpload.push(`\`${uploadPath}\``)
+            successUpload.push(`* \`${uploadPath}\``)
         } catch (error) {
             info(`error: ${error}`)
             failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`])
         }
     }
-    const s = summary.emptyBuffer()
+    await summaryOutput(successUpload, failedUpload)
+}
+
+async function summaryOutput(
+    successUpload: string[],
+    failedUpload: string[][]
+): Promise<void> {
+    const s = summary.addHeading('📦 Upload Summary')
     if (successUpload.length > 0) {
         s.addRaw('## :rocket: Success Upload')
             .addBreak()
-            .addDetails('Details', summary.addList(successUpload).stringify())
+            .addDetails('Details', successUpload.join('\n'))
     }
     if (failedUpload.length > 0) {
         s.addRaw('## :no_entry: Failed Upload')
             .addBreak()
-            .addDetails(
-                'Details',
-                summary
-                    .addTable([
-                        [
-                            {data: 'File', header: true},
-                            {data: 'Upload', header: true},
-                            {data: 'Error', header: true}
-                        ],
-                        ...failedUpload
-                    ])
-                    .stringify()
-            )
+            .addTable([
+                [
+                    {data: 'File', header: true},
+                    {data: 'Upload', header: true},
+                    {data: 'Error', header: true}
+                ],
+                ...failedUpload
+            ])
     }
-    if (!s.isEmptyBuffer()) {
-        await s.write()
-    }
+    await s.write()
 }
 
 /**
