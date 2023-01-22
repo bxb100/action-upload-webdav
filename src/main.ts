@@ -7,10 +7,11 @@ import {
     searchPaths,
     unmatchedPatterns
 } from './util'
-import {info, notice, setFailed, summary} from '@actions/core'
+import {debug, info, notice, setFailed, summary} from '@actions/core'
 import {createClient} from 'webdav'
 import {createReadStream} from 'fs'
 import {WebDAVClient} from 'webdav/dist/node/types'
+import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 
 export async function run(): Promise<void> {
     const config = parseConfig()
@@ -59,17 +60,28 @@ export async function run(): Promise<void> {
             )
             uploadPath = path.join(config.webdavUploadPath, meta.dir, meta.base)
         }
-
-        try {
-            info(`📦 Uploading ${file} to ${uploadPath}`)
-            createReadStream(file).pipe(client.createWriteStream(uploadPath))
-            successUpload.push(`* \`${uploadPath}\``)
-        } catch (error) {
-            info(`error: ${error}`)
-            failedUpload.push([`\`${file}\``, `\`${uploadPath}\``, `${error}`])
-        }
+        info(`📦 Uploading ${file} to ${uploadPath}`)
+        // ignore single file upload failed
+        await upload(client, file, uploadPath).then(
+            () => {
+                successUpload.push(`* \`${uploadPath}\``)
+            },
+            error => {
+                if (config.fastFail) {
+                    throw error
+                }
+                info(`error: ${error.message}`)
+                failedUpload.push([
+                    `\`${file}\``,
+                    `\`${uploadPath}\``,
+                    `${error}`
+                ])
+            }
+        )
     }
-    await summaryOutput(successUpload, failedUpload)
+    if (process.env[SUMMARY_ENV_VAR]) {
+        await summaryOutput(successUpload, failedUpload)
+    }
 }
 
 async function summaryOutput(
@@ -95,6 +107,34 @@ async function summaryOutput(
             ])
     }
     await s.write()
+}
+
+async function upload(
+    client: WebDAVClient,
+    origin: string,
+    target: string
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        try {
+            createReadStream(origin).pipe(
+                client.createWriteStream(target, {}, response => {
+                    const {status, data, headers} = response
+                    debug(
+                        `response status: ${status}, headers: ${JSON.stringify(
+                            headers
+                        )}, data: ${data}`
+                    )
+                    if (status >= 200 && status < 300) {
+                        resolve()
+                    } else {
+                        reject(new Error(`status: ${status}, data: ${data}`))
+                    }
+                })
+            )
+        } catch (error) {
+            reject(error)
+        }
+    })
 }
 
 /**

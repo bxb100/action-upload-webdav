@@ -19,11 +19,19 @@ describe('util', () => {
 
         it('expect github glob function', async () => {
             assert.deepStrictEqual(await filePaths(['test/data/**']), [
+                path.join(rootPath, 'test/data/data_a.txt'),
+                path.join(rootPath, 'test/data/data_b.txt'),
+                path.join(rootPath, 'test/data/foo/data_foo_a.txt'),
                 path.join(rootPath, 'test/data/foo/test-imge.jpg')
             ])
             assert.deepStrictEqual(
                 await filePaths(['test/data/**', 'test/data/does/not/exist/*']),
-                [path.join(rootPath, 'test/data/foo/test-imge.jpg')]
+                [
+									path.join(rootPath, 'test/data/data_a.txt'),
+									path.join(rootPath, 'test/data/data_b.txt'),
+									path.join(rootPath, 'test/data/foo/data_foo_a.txt'),
+									path.join(rootPath, 'test/data/foo/test-imge.jpg')
+								]
             )
         })
 
@@ -38,19 +46,33 @@ describe('util', () => {
                 path.join(rootPath, 'test/aa-bb/text.txt')
             ])
             assert.deepStrictEqual(await filePaths(['test/**/*.txt']), [
-                path.join(rootPath, 'test/aa-bb/text.txt')
+                path.join(rootPath, 'test/aa-bb/text.txt'),
+                path.join(rootPath, 'test/data/data_a.txt'),
+                path.join(rootPath, 'test/data/data_b.txt'),
+                path.join(rootPath, 'test/data/foo/data_foo_a.txt')
             ])
             assert.deepStrictEqual(await filePaths(['test/**/*.jpg']), [
                 path.join(rootPath, 'test/data/foo/test-imge.jpg')
             ])
             assert.deepStrictEqual(await filePaths(['test/**/*-*.*']), [
-                path.join(rootPath, 'test/data/foo/test-imge.jpg')
+                path.join(rootPath, 'test/data/foo/test-imge.jpg'),
             ])
         })
 
         it('exclue filetype', async () => {
             assert.deepStrictEqual(await filePaths(['test/**', '!**/*.txt']), [
-                path.join(rootPath, 'test/data/foo/test-imge.jpg')
+                path.join(rootPath, 'test/data/foo/test-imge.jpg'),
+                path.join(rootPath, 'test/nuxt/.nojekyll'),
+                path.join(rootPath, 'test/nuxt/200.html'),
+                path.join(rootPath, 'test/nuxt/_nuxt/33a59e7.js'),
+                path.join(rootPath, 'test/nuxt/_nuxt/76dbcde.js'),
+                path.join(rootPath, 'test/nuxt/_nuxt/770c1c6.js'),
+                path.join(rootPath, 'test/nuxt/_nuxt/9d0c5dd.js'),
+                path.join(rootPath, 'test/nuxt/_nuxt/LICENSES'),
+                path.join(rootPath, 'test/nuxt/_nuxt/e21982d.js'),
+                path.join(rootPath, 'test/nuxt/_nuxt/f837737.js'),
+                path.join(rootPath, 'test/nuxt/favicon.ico'),
+                path.join(rootPath, 'test/nuxt/index.html')
             ])
             assert.deepStrictEqual(await filePaths(['!**/*.txt']), [])
         })

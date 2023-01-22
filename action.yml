@@ -25,9 +25,13 @@ inputs:
     description: Fail the action when exist unmatched file
     default: "false"
     required: false
+  fast_fail:
+    description: Throw error when upload file failed. If set to false, the action will continue to upload other files, the action will be marked as success
+    default: "true"
+    required: false
 runs:
   using: 'node16'
-#   pre: 'dist/pre/index.js'
+  #   pre: 'dist/pre/index.js'
   main: 'dist/index.js'
 branding:
   icon: 'upload-cloud'

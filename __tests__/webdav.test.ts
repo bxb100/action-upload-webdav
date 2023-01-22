@@ -8,7 +8,8 @@ describe('test webDav functionality', () => {
      * run httpd webdav docker:
      * docker run -e USERNAME=alice -e PASSWORD=secret1234 --publish 8080:80 -d bytemark/webdav
      *
-     * maybe the reason https://adminswerk.de/httpd-24-webdav-error-405/
+     * `PROPFIND` will cause 405 error, maybe the reason https://adminswerk.de/httpd-24-webdav-error-405/
+     * add `DirectoryIndex disabled` solved
      */
     it('github issue #52 test upload failed', async () => {
         configSpy.mockImplementation(() => {
@@ -19,9 +20,11 @@ describe('test webDav functionality', () => {
                 webdavUploadPath: '/',
                 files: ['./test/*'],
                 keepStructure: true,
-                failOnUnmatchedFiles: false
+                failOnUnmatchedFiles: false,
+                fastFail: false
             }
         })
-        await run()
+        await expect(run()).resolves.not.toThrowError()
+        await expect(run()).resolves.not.toThrowError()
     })
 })

@@ -101,7 +101,8 @@ const parseConfig = () => {
                 trimWhitespace: true
             }),
             keepStructure: core.getBooleanInput('keep_structure'),
-            failOnUnmatchedFiles: core.getBooleanInput('fail_on_unmatched_files')
+            failOnUnmatchedFiles: core.getBooleanInput('fail_on_unmatched_files'),
+            fastFail: core.getBooleanInput('fast_fail')
         };
     }
     catch (error) {
@@ -11250,39 +11251,87 @@ module.exports = (flag, argv = process.argv) => {
 
 /***/ }),
 
-/***/ 1259:
-/***/ ((module) => {
+/***/ 3305:
+/***/ ((__unused_webpack_module, exports) => {
 
-function sequence(...methods) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sequence = void 0;
+function sequence() {
+    var methods = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        methods[_i] = arguments[_i];
+    }
     if (methods.length === 0) {
         throw new Error("Failed creating sequence: No functions provided");
     }
-    return function __executeSequence(...args) {
-        let result = args;
-        const _this = this;
+    return function __executeSequence() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var result = args;
+        var _this = this;
         while (methods.length > 0) {
-            const method = methods.shift();
+            var method = methods.shift();
             result = [method.apply(_this, result)];
         }
         return result[0];
     };
 }
-
-module.exports = {
-    sequence
-};
+exports.sequence = sequence;
 
 
 /***/ }),
 
-/***/ 3449:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 1100:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-const { sequence } = __nccwpck_require__(1259);
+"use strict";
 
-const HOT_PATCHER_TYPE = "@@HOTPATCHER";
-const NOOP = () => {};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HotPatcher = void 0;
+var patcher_1 = __nccwpck_require__(3398);
+Object.defineProperty(exports, "HotPatcher", ({ enumerable: true, get: function () { return patcher_1.HotPatcher; } }));
+__exportStar(__nccwpck_require__(2796), exports);
 
+
+/***/ }),
+
+/***/ 3398:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HotPatcher = void 0;
+var functions_1 = __nccwpck_require__(3305);
+var HOT_PATCHER_TYPE = "@@HOTPATCHER";
+var NOOP = function () { };
 function createNewItem(method) {
     return {
         original: method,
@@ -11290,189 +11339,167 @@ function createNewItem(method) {
         final: false
     };
 }
-
 /**
  * Hot patching manager class
  */
-class HotPatcher {
-    constructor() {
+var HotPatcher = /** @class */ (function () {
+    function HotPatcher() {
         this._configuration = {
             registry: {},
             getEmptyAction: "null"
         };
         this.__type__ = HOT_PATCHER_TYPE;
     }
-
-    /**
-     * Configuration object reference
-     * @type {Object}
-     * @memberof HotPatcher
-     * @readonly
-     */
-    get configuration() {
-        return this._configuration;
-    }
-
-    /**
-     * The action to take when a non-set method is requested
-     * Possible values: null/throw
-     * @type {String}
-     * @memberof HotPatcher
-     */
-    get getEmptyAction() {
-        return this.configuration.getEmptyAction;
-    }
-
-    set getEmptyAction(newAction) {
-        this.configuration.getEmptyAction = newAction;
-    }
-
+    Object.defineProperty(HotPatcher.prototype, "configuration", {
+        /**
+         * Configuration object reference
+         * @readonly
+         */
+        get: function () {
+            return this._configuration;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(HotPatcher.prototype, "getEmptyAction", {
+        /**
+         * The action to take when a non-set method is requested
+         * Possible values: null/throw
+         */
+        get: function () {
+            return this.configuration.getEmptyAction;
+        },
+        set: function (newAction) {
+            this.configuration.getEmptyAction = newAction;
+        },
+        enumerable: false,
+        configurable: true
+    });
     /**
      * Control another hot-patcher instance
      * Force the remote instance to use patched methods from calling instance
-     * @param {HotPatcher} target The target instance to control
-     * @param {Boolean=} allowTargetOverrides Allow the target to override patched methods on
+     * @param target The target instance to control
+     * @param allowTargetOverrides Allow the target to override patched methods on
      * the controller (default is false)
-     * @memberof HotPatcher
-     * @returns {HotPatcher} Returns self
+     * @returns Returns self
      * @throws {Error} Throws if the target is invalid
      */
-    control(target, allowTargetOverrides = false) {
+    HotPatcher.prototype.control = function (target, allowTargetOverrides) {
+        var _this = this;
+        if (allowTargetOverrides === void 0) { allowTargetOverrides = false; }
         if (!target || target.__type__ !== HOT_PATCHER_TYPE) {
-            throw new Error(
-                "Failed taking control of target HotPatcher instance: Invalid type or object"
-            );
+            throw new Error("Failed taking control of target HotPatcher instance: Invalid type or object");
         }
-        Object.keys(target.configuration.registry).forEach(foreignKey => {
-            if (this.configuration.registry.hasOwnProperty(foreignKey)) {
+        Object.keys(target.configuration.registry).forEach(function (foreignKey) {
+            if (_this.configuration.registry.hasOwnProperty(foreignKey)) {
                 if (allowTargetOverrides) {
-                    this.configuration.registry[foreignKey] = Object.assign(
-                        {},
-                        target.configuration.registry[foreignKey]
-                    );
+                    _this.configuration.registry[foreignKey] = Object.assign({}, target.configuration.registry[foreignKey]);
                 }
-            } else {
-                this.configuration.registry[foreignKey] = Object.assign(
-                    {},
-                    target.configuration.registry[foreignKey]
-                );
+            }
+            else {
+                _this.configuration.registry[foreignKey] = Object.assign({}, target.configuration.registry[foreignKey]);
             }
         });
         target._configuration = this.configuration;
         return this;
-    }
-
+    };
     /**
      * Execute a patched method
-     * @param {String} key The method key
-     * @param {...*} args Arguments to pass to the method (optional)
-     * @memberof HotPatcher
+     * @param key The method key
+     * @param args Arguments to pass to the method (optional)
      * @see HotPatcher#get
-     * @returns {*} The output of the called method
+     * @returns The output of the called method
      */
-    execute(key, ...args) {
-        const method = this.get(key) || NOOP;
-        return method(...args);
-    }
-
+    HotPatcher.prototype.execute = function (key) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var method = this.get(key) || NOOP;
+        return method.apply(void 0, args);
+    };
     /**
      * Get a method for a key
-     * @param {String} key The method key
-     * @returns {Function|null} Returns the requested function or null if the function
+     * @param key The method key
+     * @returns Returns the requested function or null if the function
      * does not exist and the host is configured to return null (and not throw)
-     * @memberof HotPatcher
      * @throws {Error} Throws if the configuration specifies to throw and the method
      * does not exist
      * @throws {Error} Throws if the `getEmptyAction` value is invalid
      */
-    get(key) {
-        const item = this.configuration.registry[key];
+    HotPatcher.prototype.get = function (key) {
+        var item = this.configuration.registry[key];
         if (!item) {
             switch (this.getEmptyAction) {
                 case "null":
                     return null;
                 case "throw":
-                    throw new Error(
-                        `Failed handling method request: No method provided for override: ${key}`
-                    );
+                    throw new Error("Failed handling method request: No method provided for override: ".concat(key));
                 default:
-                    throw new Error(
-                        `Failed handling request which resulted in an empty method: Invalid empty-action specified: ${
-                            this.getEmptyAction
-                        }`
-                    );
+                    throw new Error("Failed handling request which resulted in an empty method: Invalid empty-action specified: ".concat(this.getEmptyAction));
             }
         }
-        return sequence(...item.methods);
-    }
-
+        return functions_1.sequence.apply(void 0, item.methods);
+    };
     /**
      * Check if a method has been patched
-     * @param {String} key The function key
-     * @returns {Boolean} True if already patched
-     * @memberof HotPatcher
+     * @param key The function key
+     * @returns True if already patched
      */
-    isPatched(key) {
+    HotPatcher.prototype.isPatched = function (key) {
         return !!this.configuration.registry[key];
-    }
-
-    /**
-     * @typedef {Object} PatchOptions
-     * @property {Boolean=} chain - Whether or not to allow chaining execution. Chained
-     *  execution allows for attaching multiple callbacks to a key, where the callbacks
-     *  will be executed in order of when they were patched (oldest to newest), the
-     *  values being passed from one method to another.
-     */
-
+    };
     /**
      * Patch a method name
-     * @param {String} key The method key to patch
-     * @param {Function} method The function to set
-     * @param {PatchOptions=} options Patch options
-     * @memberof HotPatcher
-     * @returns {HotPatcher} Returns self
+     * @param key The method key to patch
+     * @param method The function to set
+     * @param opts Patch options
+     * @returns Returns self
      */
-    patch(key, method, { chain = false } = {}) {
+    HotPatcher.prototype.patch = function (key, method, opts) {
+        if (opts === void 0) { opts = {}; }
+        var _a = opts.chain, chain = _a === void 0 ? false : _a;
         if (this.configuration.registry[key] && this.configuration.registry[key].final) {
-            throw new Error(`Failed patching '${key}': Method marked as being final`);
+            throw new Error("Failed patching '".concat(key, "': Method marked as being final"));
         }
         if (typeof method !== "function") {
-            throw new Error(`Failed patching '${key}': Provided method is not a function`);
+            throw new Error("Failed patching '".concat(key, "': Provided method is not a function"));
         }
         if (chain) {
             // Add new method to the chain
             if (!this.configuration.registry[key]) {
                 // New key, create item
                 this.configuration.registry[key] = createNewItem(method);
-            } else {
+            }
+            else {
                 // Existing, push the method
                 this.configuration.registry[key].methods.push(method);
             }
-        } else {
+        }
+        else {
             // Replace the original
             if (this.isPatched(key)) {
-                const { original } = this.configuration.registry[key];
+                var original = this.configuration.registry[key].original;
                 this.configuration.registry[key] = Object.assign(createNewItem(method), {
-                    original
+                    original: original
                 });
-            } else {
+            }
+            else {
                 this.configuration.registry[key] = createNewItem(method);
             }
         }
         return this;
-    }
-
+    };
     /**
      * Patch a method inline, execute it and return the value
      * Used for patching contents of functions. This method will not apply a patched
      * function if it has already been patched, allowing for external overrides to
      * function. It also means that the function is cached so that it is not
      * instantiated every time the outer function is invoked.
-     * @param {String} key The function key to use
-     * @param {Function} method The function to patch (once, only if not patched)
-     * @param {...*} args Arguments to pass to the function
-     * @returns {*} The output of the patched function
-     * @memberof HotPatcher
+     * @param key The function key to use
+     * @param method The function to patch (once, only if not patched)
+     * @param args Arguments to pass to the function
+     * @returns The output of the patched function
      * @example
      *  function mySpecialFunction(a, b) {
      *      return hotPatcher.patchInline("func", (a, b) => {
@@ -11480,63 +11507,77 @@ class HotPatcher {
      *      }, a, b);
      *  }
      */
-    patchInline(key, method, ...args) {
+    HotPatcher.prototype.patchInline = function (key, method) {
+        var args = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
+        }
         if (!this.isPatched(key)) {
             this.patch(key, method);
         }
-        return this.execute(key, ...args);
-    }
-
+        return this.execute.apply(this, __spreadArray([key], args, false));
+    };
     /**
      * Patch a method (or methods) in sequential-mode
      * See `patch()` with the option `chain: true`
      * @see patch
-     * @param {String} key The key to patch
-     * @param {...Function} methods The methods to patch
-     * @returns {HotPatcher} Returns self
-     * @memberof HotPatcher
+     * @param key The key to patch
+     * @param methods The methods to patch
+     * @returns Returns self
      */
-    plugin(key, ...methods) {
-        methods.forEach(method => {
-            this.patch(key, method, { chain: true });
+    HotPatcher.prototype.plugin = function (key) {
+        var _this = this;
+        var methods = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            methods[_i - 1] = arguments[_i];
+        }
+        methods.forEach(function (method) {
+            _this.patch(key, method, { chain: true });
         });
         return this;
-    }
-
+    };
     /**
      * Restore a patched method if it has been overridden
-     * @param {String} key The method key
-     * @memberof HotPatcher
+     * @param key The method key
+     * @returns Returns self
      */
-    restore(key) {
+    HotPatcher.prototype.restore = function (key) {
         if (!this.isPatched(key)) {
-            throw new Error(`Failed restoring method: No method present for key: ${key}`);
-        } else if (typeof this.configuration.registry[key].original !== "function") {
-            throw new Error(
-                `Failed restoring method: Original method not found or of invalid type for key: ${key}`
-            );
+            throw new Error("Failed restoring method: No method present for key: ".concat(key));
+        }
+        else if (typeof this.configuration.registry[key].original !== "function") {
+            throw new Error("Failed restoring method: Original method not found or of invalid type for key: ".concat(key));
         }
         this.configuration.registry[key].methods = [this.configuration.registry[key].original];
-    }
-
+        return this;
+    };
     /**
      * Set a method as being final
      * This sets a method as having been finally overridden. Attempts at overriding
      * again will fail with an error.
-     * @param {String} key The key to make final
-     * @memberof HotPatcher
-     * @returns {HotPatcher} Returns self
+     * @param key The key to make final
+     * @returns Returns self
      */
-    setFinal(key) {
+    HotPatcher.prototype.setFinal = function (key) {
         if (!this.configuration.registry.hasOwnProperty(key)) {
-            throw new Error(`Failed marking '${key}' as final: No method found for key`);
+            throw new Error("Failed marking '".concat(key, "' as final: No method found for key"));
         }
         this.configuration.registry[key].final = true;
         return this;
-    }
-}
+    };
+    return HotPatcher;
+}());
+exports.HotPatcher = HotPatcher;
 
-module.exports = HotPatcher;
+
+/***/ }),
+
+/***/ 2796:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
@@ -16081,20 +16122,17 @@ exports.isBuffer = isBuffer;
 /***/ }),
 
 /***/ 9958:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getPatcher = void 0;
-var hot_patcher_1 = __importDefault(__nccwpck_require__(3449));
+var hot_patcher_1 = __nccwpck_require__(1100);
 var __patcher = null;
 function getPatcher() {
     if (!__patcher) {
-        __patcher = new hot_patcher_1.default();
+        __patcher = new hot_patcher_1.HotPatcher();
     }
     return __patcher;
 }
@@ -16798,7 +16836,7 @@ var response_1 = __nccwpck_require__(9136);
 function getDirectoryContents(context, remotePath, options) {
     if (options === void 0) { options = {}; }
     return __awaiter(this, void 0, void 0, function () {
-        var requestOptions, response, davResp, files;
+        var requestOptions, response, davResp, _remotePath, files;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -16818,7 +16856,8 @@ function getDirectoryContents(context, remotePath, options) {
                     return [4 /*yield*/, (0, dav_1.parseXML)(response.data)];
                 case 2:
                     davResp = _a.sent();
-                    files = getDirectoryFiles(davResp, context.remotePath, remotePath, options.details);
+                    _remotePath = remotePath.startsWith("/") ? remotePath : "/" + remotePath;
+                    files = getDirectoryFiles(davResp, context.remotePath, _remotePath, options.details);
                     if (options.glob) {
                         files = (0, response_1.processGlobFilter)(files, options.glob);
                     }

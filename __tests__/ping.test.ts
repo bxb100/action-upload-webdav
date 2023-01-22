@@ -15,7 +15,8 @@ describe('WebDAV link test', () => {
                 webdavUploadPath: '',
                 files: [''],
                 keepStructure: false,
-                failOnUnmatchedFiles: false
+                failOnUnmatchedFiles: false,
+                fastFail: false
             }
         })
         return expect(async () => await ping()).rejects.toThrowError(
@@ -26,13 +27,14 @@ describe('WebDAV link test', () => {
     it('ping success', async () => {
         configSpy.mockImplementation(() => {
             return {
-                webdavAddress: 'http://192.168.31.143:5999',
-                webdavUsername: 'webdav-user-test',
-                webdavPassword: 'test12345',
+                webdavAddress: 'http://localhost:8080',
+                webdavUsername: 'alice',
+                webdavPassword: 'secret1234',
                 webdavUploadPath: '',
                 files: [''],
                 keepStructure: false,
-                failOnUnmatchedFiles: false
+                failOnUnmatchedFiles: false,
+                fastFail: false
             }
         })
 

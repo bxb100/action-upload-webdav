@@ -11,6 +11,7 @@ export interface Config {
     files: string[]
     keepStructure: boolean
     failOnUnmatchedFiles: boolean
+    fastFail: boolean
 }
 
 export const parseConfig = (): Config => {
@@ -29,7 +30,8 @@ export const parseConfig = (): Config => {
             keepStructure: core.getBooleanInput('keep_structure'),
             failOnUnmatchedFiles: core.getBooleanInput(
                 'fail_on_unmatched_files'
-            )
+            ),
+            fastFail: core.getBooleanInput('fast_fail')
         }
     } catch (error) {
         throw new Error(`⛔ Some Input is missing: ${error}`)
