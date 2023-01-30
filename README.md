@@ -5,7 +5,7 @@
   action upload-webdav
 </h1>
 <p align="center">
-A Github Action for uploading files to a webdav server
+A Github Action for uploading files to a [WebDAV](http://www.webdav.org/) server
 </p>
 
 ## :cartwheeling: Usage
@@ -20,31 +20,31 @@ A Github Action for uploading files to a webdav server
     files: "./test/**"
  ```
 
-> :warning: for security purpose, please using the Actions secrets, check
-> in <https://docs.github.com/en/actions/security-guides/encrypted-secrets>
+> :warning: for security purpose, please use Actions Secrets.
+> See <https://docs.github.com/en/actions/security-guides/encrypted-secrets> for more information.
 
 ## :writing_hand: All Parameters
 
-| Input                     | Description                                                                                                                                                                        | Default |
-|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
-| `webdav_address`          | WebDAV address                                                                                                                                                                     | -       |
-| `webdav_username`         | WebDAV username                                                                                                                                                                    | -       |
-| `webdav_password`         | WebDAV password                                                                                                                                                                    | -       |
-| `webdav_upload_path`      | The WebDAV path where you want to upload, Some server not support root path                                                                                                        | -       |
-| [`files`](#files)         | Newline-delimited list of path globs for asset files to upload <br> :feet: You can learn more about multi-line yaml syntax [here](https://yaml-multiline.info/)                    | -       |
-| `fail_on_unmatched_files` | Fail the action when exist unmatched file pattern                                                                                                                                  | false   |
-| `keep_structure`          | Keep the directory structure of the files<br/> **Only support single search path**, [rule](https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27) | false   |
+| Input                     | Description                                                                                                                                                                           | Default |
+|---------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
+| `webdav_address`          | WebDAV address                                                                                                                                                                        | -       |
+| `webdav_username`         | WebDAV username                                                                                                                                                                       | -       |
+| `webdav_password`         | WebDAV password                                                                                                                                                                       | -       |
+| `webdav_upload_path`      | The WebDAV path where you want to upload. Some servers may not support the root path                                                                                                  | -       |
+| [`files`](#files)         | Newline-delimited list of path globs for asset files to upload <br> :feet: You can learn more about multi-line YAML syntax [here](https://yaml-multiline.info/)                       | -       |
+| `fail_on_unmatched_files` | Fail the action if there exists an unmatched file pattern                                                                                                                             | false   |
+| `keep_structure`          | Keep the directory structure of the files<br/> **Only supports a single search path**, [rule](https://github.com/actions/toolkit/blob/main/packages/glob/src/internal-globber.ts#L27) | false   |
 
-> :no_bicycles: Now we just support the basic authentication
+> :no_bicycles: This project only supports basic authentication
 >
-> :warning: If the upload path contains same file name, the file will be overwritten
+> :warning: If the upload path contains an existing filename, the file will be overwritten
 
-## :potted_plant: Detail
+## :potted_plant: Details
 
 ### files
 
-Using the [@action/glob](https://github.com/actions/toolkit/tree/main/packages/glob) to search for files matching glob
-patterns. You can set muliple pattern to active the search.
+Use the [@action/glob](https://github.com/actions/toolkit/tree/main/packages/glob) to search for files matching glob
+patterns. You can set multiple patterns.
 
 <details>
 <summary>Pattern Details</summary>
@@ -57,13 +57,13 @@ Patterns `*`, `?`, `[...]`, `**` (globstar) are supported.
 
 With the following behaviors:
 
-- File names that begin with `.` may be included in the results
-- Case insensitive on Windows
-- Directory separator `/` and `\` both supported on Windows
+- File names that begin with `.` will be included in the results
+- Case-insensitive on Windows
+- Directory separators `/` and `\` are both supported on Windows
 
 #### Tilde expansion
 
-Supports basic tilde expansion, for current user HOME replacement only.
+Supports basic tilde expansion, for current-user HOME replacement only.
 
 Example:
 
@@ -82,8 +82,7 @@ Multiple leading `!` flips the meaning.
 
 #### Escaping
 
-Wrapping special characters in `[]` can be used to escape literal glob characters
-in a file name. For example the literal file name `hello[a-z]` can be escaped as `hello[[]a-z]`.
+Escape special glob characters by wrapping in `[]`. For example the literal file name `hello[a-z]` can be escaped as `hello[[]a-z]`.
 
 On Linux/macOS `\` is also treated as an escape character.
 
