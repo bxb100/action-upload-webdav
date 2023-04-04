@@ -1,5 +1,8 @@
 __Working on https://github.com/bxb100/action-upload__
 
+<details>
+<summory>
+
 <div align="center">
   :outbox_tray: :octocat:
 </div>
@@ -95,3 +98,6 @@ On Linux/macOS `\` is also treated as an escape character.
 - [action-gh-release](https://github.com/softprops/action-gh-release)
 - [toolkit](https://github.com/actions/toolkit)
 - [webdav-client](https://github.com/perry-mitchell/webdav-client)
+
+</summory>
+</details>
