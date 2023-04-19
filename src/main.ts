@@ -34,7 +34,7 @@ async function run(): Promise<void> {
     const client = createClient(config.webdavAddress, {
         username: config.webdavUsername,
         password: config.webdavPassword,
-        maxBodyLength: 100000000,
+        maxBodyLength: Infinity,
         httpsAgent: HttpsAgent
     })
 

@@ -66,7 +66,7 @@ function run() {
         const client = (0, webdav_1.createClient)(config.webdavAddress, {
             username: config.webdavUsername,
             password: config.webdavPassword,
-            maxBodyLength: 100000000,
+            maxBodyLength: Infinity,
             httpsAgent: HttpsAgent
         });
         // first be sure there are have directory
